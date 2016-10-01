@@ -45,7 +45,7 @@ $ ./bin/microcrawler-client.js -h
 
     -h, --help       output usage information
     -V, --version    output the version number
-    -u, --url <URL>  URL to connect to, default: ws://localhost:4000/socket/longpoll?token=undefined&vsn=1.0.0
+    -u, --url <URL>  URL to connect to, default: ws://localhost:4000/socket
 ```
 
 
@@ -60,12 +60,14 @@ $ ./bin/microcrawler-client.js --version
 
 ```
 $ ./bin/microcrawler-client.js
+Connecting to "ws://localhost:4000/socket"
 catching up {}
 ```
 
 ***Connect to Custom URL***
 
 ```
-$ ./bin/microcrawler-client.js -u ws://example.com/socket/longpoll?token=undefined&vsn=1.0.0
+$ ./bin/microcrawler-client.js -u ws://example.com/socket
+Connecting to "ws://example.com/socket"
 catching up {}
 ```
