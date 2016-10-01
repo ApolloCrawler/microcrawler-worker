@@ -1,14 +1,14 @@
 {
-  "name": "microcrawler-client",
+  "name": "microcrawler-worker",
   "version": "0.0.1",
-  "description": "Microcrawler Client",
+  "description": "Microcrawler Worker",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ApolloCrawler/microcrawler-client.git"
+    "url": "git+https://github.com/ApolloCrawler/microcrawler-worker.git"
   },
   "keywords": [
     "microcrawler",
@@ -18,9 +18,9 @@
   "author": "Tomas Korcak <korczis@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ApolloCrawler/microcrawler-client/issues"
+    "url": "https://github.com/ApolloCrawler/microcrawler-worker/issues"
   },
-  "homepage": "https://github.com/ApolloCrawler/microcrawler-client#readme",
+  "homepage": "https://github.com/ApolloCrawler/microcrawler-worker#readme",
   "dependencies": {
     "bufferutil": "^1.2.1",
     "colors": "^1.1.2",

@@ -67,8 +67,10 @@ export default class App {
     });
 
     const heartbeatInterval = program.heartbeatInterval || DEFAULT_HEARTBEAT_INTERVAL;
+    let id = 0;
     setInterval(() => {
-      channel.push('ping', {msg: 'I am still alive!'})
+      channel.push('ping', {id, msg: 'I am still alive!', name: pkg.name, version: pkg.version});
+      id += 1;
     }, parseInt(heartbeatInterval));
 
     channel.push('msg', {msg: 'Hello World!'});
