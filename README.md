@@ -25,7 +25,7 @@ cd microcrawler-worker
 npm install
 ```
 
-***Run Microcrawler Client***
+***Run Microcrawler Worker***
 
 ```
 bin/microcrawler-worker.js
