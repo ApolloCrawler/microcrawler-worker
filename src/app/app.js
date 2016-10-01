@@ -1,14 +1,16 @@
 import program from 'commander';
 import {Socket, LongPoll} from 'phoenix-socket';
+import WebSocket from 'websocket';
 import XMLHttpRequest from 'xhr2';
 
 import pkg from '../../package.json';
 
-export const DEFAULT_URL = 'ws://localhost:4000/socket/longpoll?token=undefined&vsn=1.0.0';
+export const DEFAULT_URL = 'ws://localhost:4000/socket';
 
 // These hacks are required to pretend we are the browser
 global.XMLHttpRequest = XMLHttpRequest;
 global.window = {
+  WebSocket: WebSocket.w3cwebsocket,
   XMLHttpRequest
 };
 
@@ -21,7 +23,8 @@ export default class App {
 
     const url = program.url || DEFAULT_URL;
 
-    let socket = new Socket(DEFAULT_URL);
+    console.log(`Connecting to "${url}"`);
+    let socket = new Socket(url, {transport: global.window.WebSocket});
 
     // Error handler
     socket.onError((err) => {
