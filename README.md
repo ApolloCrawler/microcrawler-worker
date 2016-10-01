@@ -62,7 +62,6 @@ $ ./bin/microcrawler-worker.js --version
 ```
 $ ./bin/microcrawler-worker.js
 Connecting to "ws://localhost:4000/socket"
-catching up {}
 ```
 
 ***Connect to Custom URL***
@@ -70,7 +69,6 @@ catching up {}
 ```
 $ ./bin/microcrawler-worker.js -u ws://example.com/socket
 Connecting to "ws://example.com/socket"
-catching up {}
 ```
 
 ***Sample Output***
