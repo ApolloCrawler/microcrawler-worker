@@ -51,7 +51,7 @@ export default class App {
     // Create channel
     const token = program.token || DEFAULT_TOKEN;
     const channel = socket.channel(channelName, {token});
-    channel.join()
+    const r = channel.join()
       .receive('ok', (data) => {
         console.log("Received data", data);
       })
@@ -61,6 +61,10 @@ export default class App {
       .receive('timeout', () => {
         console.log("Networking issue. Still waiting...")
       });
+
+    channel.on('pong', (data) => {
+      console.log('Received pong', data);
+    });
 
     const heartbeatInterval = program.heartbeatInterval || DEFAULT_HEARTBEAT_INTERVAL;
     setInterval(() => {
