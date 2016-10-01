@@ -1,3 +1,4 @@
+import os from 'os';
 import program from 'commander';
 import {Socket, LongPoll} from 'phoenix-socket';
 import WebSocket from 'websocket';
@@ -71,7 +72,26 @@ export default class App {
     const heartbeatInterval = program.heartbeatInterval || DEFAULT_HEARTBEAT_INTERVAL;
     let id = 0;
     setInterval(() => {
-      channel.push('ping', {id, msg: 'I am still alive!', name: pkg.name, version: pkg.version});
+      const msg = {
+        id,
+        msg: 'I am still alive!',
+        name:
+        pkg.name,
+        version: pkg.version,
+        os: {
+          endian: os.endianness(),
+          hostname: os.hostname(),
+          platform: os.platform(),
+          mem: {
+            total: os.totalmem(),
+            free: os.freemem(),
+          },
+          load: os.loadavg(),
+          uptime: os.uptime()
+        }
+      };
+
+      channel.push('ping', msg);
       id += 1;
     }, parseInt(heartbeatInterval));
 
