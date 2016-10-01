@@ -73,7 +73,7 @@ Connecting to "ws://example.com/socket"
 catching up {}
 ```
 
-***Example Output***
+***Sample Output***
 
 ```
 $ ./bin/microcrawler-worker.js --heartbeat-interval 10000
