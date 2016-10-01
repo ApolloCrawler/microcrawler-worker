@@ -41,7 +41,7 @@ export default class App {
     socket.connect();
 
     // Create channel
-    let channel = socket.channel("room:lobby", {token: null});
+    let channel = socket.channel("worker:lobby", {token: null});
     channel.join()
       .receive('ok', (data) => {
         console.log("catching up", data);
