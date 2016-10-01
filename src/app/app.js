@@ -79,6 +79,7 @@ export default class App {
         pkg.name,
         version: pkg.version,
         os: {
+          cpus: os.cpus(),
           endian: os.endianness(),
           hostname: os.hostname(),
           platform: os.platform(),
