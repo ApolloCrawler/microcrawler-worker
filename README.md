@@ -43,12 +43,12 @@ $ ./bin/microcrawler-client.js -h
 
   Options:
 
-    -h, --help               output usage information
-    -V, --version            output the version number
-    -c, --channel <CHANNEL>  Channel to connect to, default: worker:lobby
-    -u, --url <URL>          URL to connect to, default: ws://localhost:4000/socket
-    -t, --token <TOKEN>      Token used for authorization, default: null
-
+    -h, --help                           output usage information
+    -V, --version                        output the version number
+    -c, --channel <CHANNEL>              Channel to connect to, default: worker:lobby
+    --heartbeat-interval <MILLISECONDS>  Heartbeat interval in milliseconds, default: 10000
+    -u, --url <URL>                      URL to connect to, default: ws://localhost:4000/socket
+    -t, --token <TOKEN>                  Token used for authorization, default: null
 ```
 
 ***Print Version***

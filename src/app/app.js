@@ -8,6 +8,7 @@ import pkg from '../../package.json';
 export const DEFAULT_URL = 'ws://localhost:4000/socket';
 export const DEFAULT_CHANNEL = 'worker:lobby';
 export const DEFAULT_TOKEN = null;
+export const DEFAULT_HEARTBEAT_INTERVAL = 10000;
 
 // These hacks are required to pretend we are the browser
 global.XMLHttpRequest = XMLHttpRequest;
@@ -21,6 +22,7 @@ export default class App {
     program
       .version(pkg.version)
       .option('-c, --channel <CHANNEL>', `Channel to connect to, default: ${DEFAULT_CHANNEL}`)
+      .option('--heartbeat-interval <MILLISECONDS>', `Heartbeat interval in milliseconds, default: ${DEFAULT_HEARTBEAT_INTERVAL}`)
       .option('-u, --url <URL>', `URL to connect to, default: ${DEFAULT_URL}`)
       .option('-t, --token <TOKEN>', `Token used for authorization, default: ${DEFAULT_TOKEN}`)
       .parse(args);
@@ -59,6 +61,11 @@ export default class App {
       .receive('timeout', () => {
         console.log("Networking issue. Still waiting...")
       });
+
+    const heartbeatInterval = program.heartbeatInterval || DEFAULT_HEARTBEAT_INTERVAL;
+    setInterval(() => {
+      channel.push('ping', {msg: 'I am still alive!'})
+    }, parseInt(heartbeatInterval));
 
     channel.push('msg', {msg: 'Hello World!'});
   }
