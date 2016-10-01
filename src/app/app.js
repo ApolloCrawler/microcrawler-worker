@@ -52,8 +52,9 @@ export default class App {
     const token = program.token || DEFAULT_TOKEN;
     const channel = socket.channel(channelName, {token});
     const r = channel.join()
-      .receive('ok', (data) => {
-        console.log("Received data", data);
+      .receive('ok', (payload) => {
+        console.log("Received ok");
+        console.log(JSON.stringify(payload, null, 4));
       })
       .receive('error', ({reason}) => {
         console.log("Failed join", reason)
@@ -62,8 +63,9 @@ export default class App {
         console.log("Networking issue. Still waiting...")
       });
 
-    channel.on('pong', (data) => {
-      console.log('Received pong', data);
+    channel.on('pong', (payload) => {
+      console.log('Received event - pong');
+      console.log(JSON.stringify(payload, null, 4));
     });
 
     const heartbeatInterval = program.heartbeatInterval || DEFAULT_HEARTBEAT_INTERVAL;
