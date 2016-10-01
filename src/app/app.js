@@ -6,6 +6,8 @@ import XMLHttpRequest from 'xhr2';
 import pkg from '../../package.json';
 
 export const DEFAULT_URL = 'ws://localhost:4000/socket';
+export const DEFAULT_CHANNEL = 'worker:lobby';
+export const DEFAULT_TOKEN = null;
 
 // These hacks are required to pretend we are the browser
 global.XMLHttpRequest = XMLHttpRequest;
@@ -18,7 +20,9 @@ export default class App {
   main(args = process.argv) {
     program
       .version(pkg.version)
+      .option('-c, --channel <CHANNEL>', `Channel to connect to, default: ${DEFAULT_CHANNEL}`)
       .option('-u, --url <URL>', `URL to connect to, default: ${DEFAULT_URL}`)
+      .option('-t, --token <TOKEN>', `Token used for authorization, default: ${DEFAULT_TOKEN}`)
       .parse(args);
 
     const url = program.url || DEFAULT_URL;
@@ -40,14 +44,17 @@ export default class App {
     // Try to connect
     socket.connect();
 
+    const channelName = program.channel || DEFAULT_CHANNEL;
+
     // Create channel
-    let channel = socket.channel("worker:lobby", {token: null});
+    const token = program.token || DEFAULT_TOKEN;
+    const channel = socket.channel(channelName, {token});
     channel.join()
       .receive('ok', (data) => {
-        console.log("catching up", data);
+        console.log("Received data", data);
       })
       .receive('error', ({reason}) => {
-        console.log("failed join", reason)
+        console.log("Failed join", reason)
       })
       .receive('timeout', () => {
         console.log("Networking issue. Still waiting...")
