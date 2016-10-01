@@ -1,1 +1,3 @@
-import WebSocket from 'ws';
+import App from './app';
+export default App;
+
