@@ -60,6 +60,6 @@ export default class App {
         console.log("Networking issue. Still waiting...")
       });
 
-    channel.push({msg: "test"});
+    channel.push('msg', {msg: 'Hello World!'});
   }
 };
