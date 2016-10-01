@@ -1,5 +1,4 @@
-# microcrawler-client
-Microcrawler Client
+# Microcrawler Worker
 
 ## Prerequisities
 
@@ -11,13 +10,13 @@ Microcrawler Client
 ***Clone Sources***
 
 ```
-git clone https://github.com/AplloCrawler/microcrawler-client.git
+git clone https://github.com/AplloCrawler/microcrawler-worker.git
 ```
 
 ***Enter Directory with Sources***
 
 ```
-cd microcrawler-client
+cd microcrawler-worker
 ```
 
 ***Install Dependencies***
@@ -29,7 +28,7 @@ npm install
 ***Run Microcrawler Client***
 
 ```
-bin/microcrawler-client.js
+bin/microcrawler-worker.js
 ```
 
 ## Usage
@@ -37,9 +36,9 @@ bin/microcrawler-client.js
 ***Show Help***
 
 ```
-$ ./bin/microcrawler-client.js -h
+$ ./bin/microcrawler-worker.js -h
 
-  Usage: microcrawler-client [options]
+  Usage: microcrawler-worker [options]
 
   Options:
 
@@ -54,14 +53,14 @@ $ ./bin/microcrawler-client.js -h
 ***Print Version***
 
 ```
-$ ./bin/microcrawler-client.js --version
+$ ./bin/microcrawler-worker.js --version
 0.0.1
 ```
 
 ***Connect to Default URL***
 
 ```
-$ ./bin/microcrawler-client.js
+$ ./bin/microcrawler-worker.js
 Connecting to "ws://localhost:4000/socket"
 catching up {}
 ```
@@ -69,7 +68,7 @@ catching up {}
 ***Connect to Custom URL***
 
 ```
-$ ./bin/microcrawler-client.js -u ws://example.com/socket
+$ ./bin/microcrawler-worker.js -u ws://example.com/socket
 Connecting to "ws://example.com/socket"
 catching up {}
 ```
