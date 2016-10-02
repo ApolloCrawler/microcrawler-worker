@@ -1,0 +1,17 @@
+# Wild
+*.log
+*.tmp
+*.bak
+*.bck
+
+# Files
+Dockerfile
+
+# Folders
+.git/
+data/
+docker/*.*
+docks/
+doc/
+node_modules/
+tmp/
