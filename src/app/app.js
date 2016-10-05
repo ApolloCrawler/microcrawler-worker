@@ -120,13 +120,14 @@ export default class App {
         const quitCommands = [
           'exit',
           'exit()',
-          'q',
-          'q()',
+          'x',
+          'x()',
+          '\\x',
           'quit',
           'quit()',
-          '\\q',
-          'x',
-          '\\x'
+          'q',
+          'q()',
+          '\\q'
         ];
 
         if (quitCommands.indexOf(line) >= 0) {
