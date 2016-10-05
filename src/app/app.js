@@ -108,12 +108,17 @@ export default class App {
     const prefix = 'msg> ';
     if (program.interactive) {
       const rl = readline.createInterface(process.stdin, process.stdout);
+
+      const ex = () => {
+        process.exit(0);
+        console.log('Quitting ...');
+      };
+
       rl.on('line', (line) => {
         // console.log(line);
 
-        if (line === 'quit') {
-          process.exit(0);
-          console.log('Quitting ...');
+        if (line === 'quit' || line === 'exit' || line === 'q' || line === '\q') {
+          ex();
         }
 
         let rawMessage = null;
