@@ -136,7 +136,7 @@ export default class App {
           'q()',
           '\\q',
           '/q',
-          '/quit' 
+          '/quit'
         ];
 
         if (quitCommands.indexOf(line) >= 0) {
