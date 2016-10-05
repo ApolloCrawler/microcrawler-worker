@@ -46,6 +46,7 @@ $ ./bin/microcrawler-worker.js -h
     -V, --version                        output the version number
     -c, --channel <CHANNEL>              Channel to connect to, default: worker:lobby
     --heartbeat-interval <MILLISECONDS>  Heartbeat interval in milliseconds, default: 10000
+    -i, --interactive                    Run interactive mode
     -u, --url <URL>                      URL to connect to, default: ws://localhost:4000/socket
     -t, --token <TOKEN>                  Token used for authorization, default: null
 ```
