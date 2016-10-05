@@ -129,7 +129,9 @@ export default class App {
           rawMessage = line;
         }
 
-        channel.push('msg', rawMessage);
+        if (rawMessage) {
+          channel.push('msg', rawMessage);
+        }
 
         rl.prompt();
       });
