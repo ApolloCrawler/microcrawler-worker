@@ -4,6 +4,8 @@ import {Socket, LongPoll} from 'phoenix-socket';
 import WebSocket from 'websocket';
 import XMLHttpRequest from 'xhr2';
 
+import readline from 'readline';
+
 import pkg from '../../package.json';
 
 export const DEFAULT_URL = 'ws://localhost:4000/socket';
@@ -24,6 +26,7 @@ export default class App {
       .version(pkg.version)
       .option('-c, --channel <CHANNEL>', `Channel to connect to, default: ${DEFAULT_CHANNEL}`)
       .option('--heartbeat-interval <MILLISECONDS>', `Heartbeat interval in milliseconds, default: ${DEFAULT_HEARTBEAT_INTERVAL}`)
+      .option('-i, --interactive', 'Run interactive mode')
       .option('-u, --url <URL>', `URL to connect to, default: ${DEFAULT_URL}`)
       .option('-t, --token <TOKEN>', `Token used for authorization, default: ${DEFAULT_TOKEN}`)
       .parse(args);
@@ -64,6 +67,11 @@ export default class App {
         console.log("Networking issue. Still waiting...")
       });
 
+    channel.on('crawl', (payload) => {
+      console.log('Received event - crawl');
+      console.log(JSON.stringify(payload, null, 4));
+    });
+
     channel.on('pong', (payload) => {
       console.log('Received event - pong');
       console.log(JSON.stringify(payload, null, 4));
@@ -75,8 +83,7 @@ export default class App {
       const msg = {
         id,
         msg: 'I am still alive!',
-        name:
-        pkg.name,
+        name: pkg.name,
         version: pkg.version,
         os: {
           cpus: os.cpus(),
@@ -97,5 +104,24 @@ export default class App {
     }, parseInt(heartbeatInterval));
 
     channel.push('msg', {msg: 'Hello World!'});
+
+    const prefix = 'msg> ';
+    if (program.interactive) {
+      const rl = readline.createInterface(process.stdin, process.stdout);
+      rl.on('line', (line) => {
+        // console.log(line);
+
+        channel.push('msg', line);
+
+        rl.prompt();
+      });
+
+      console.log('Running in interactive mode.');
+      console.log('Type "quit" or press ctrl+c to exit.');
+      rl.setPrompt(prefix, prefix.length);
+
+      rl.prompt();
+    }
   }
 };
+
