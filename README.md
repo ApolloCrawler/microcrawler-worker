@@ -182,6 +182,8 @@ Received event - msg
 Received event - msg
 "Received my message?"
 Received event - msg
+42
+Received event - msg
 {
   "abc": "123"
 }
@@ -220,6 +222,7 @@ msg> Received ok
 }
 msg> Hi, how are you?
 msg> Received my message?
+msg> 42
 msg> {"abc": "123"}
 msg> {"pole": [1, 2, 3, 4], "msg": "to pole je fakt urodny"}
 msg> quit
