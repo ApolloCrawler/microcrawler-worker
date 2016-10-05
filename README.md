@@ -216,7 +216,7 @@ Received event - msg
 $ ./bin/microcrawler-worker.js -i --heartbeat-interval 3600000
 Connecting to "ws://localhost:4000/socket"
 Running in interactive mode.
-Type "quit" or press ctrl+c to exit.
+Type "quit" or press ctrl+c twice to exit.
 msg> Received ok
 {
     "msg": "Welcome!"

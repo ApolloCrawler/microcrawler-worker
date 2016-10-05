@@ -130,7 +130,7 @@ export default class App {
       });
 
       console.log('Running in interactive mode.');
-      console.log('Type "quit" or press ctrl+c to exit.');
+      console.log('Type "quit" or press ctrl+c twice to exit.');
       rl.setPrompt(prefix, prefix.length);
 
       rl.prompt();
