@@ -111,7 +111,7 @@ export default class App {
     if (program.interactive) {
       const rl = readline.createInterface(process.stdin, process.stdout);
 
-      const ex = () => {
+      const exitFunc = () => {
         process.exit(0);
         console.log('Quitting ...');
       };
@@ -128,15 +128,19 @@ export default class App {
           'x',
           'x()',
           '\\x',
+          '/x',
+          '/exit',
           'quit',
           'quit()',
           'q',
           'q()',
-          '\\q'
+          '\\q',
+          '/q',
+          '/quit' 
         ];
 
         if (quitCommands.indexOf(line) >= 0) {
-          ex();
+          exitFunc();
         }
 
         let rawMessage = null;
