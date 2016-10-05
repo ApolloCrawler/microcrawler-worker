@@ -116,7 +116,15 @@ export default class App {
           console.log('Quitting ...');
         }
 
-        channel.push('msg', line);
+        let rawMessage = null;
+
+        try {
+          rawMessage = JSON.parse(line);
+        } catch(e) {
+          rawMessage = line;
+        }
+
+        channel.push('msg', rawMessage);
 
         rl.prompt();
       });
