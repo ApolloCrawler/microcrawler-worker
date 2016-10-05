@@ -13,6 +13,8 @@ export const DEFAULT_CHANNEL = 'worker:lobby';
 export const DEFAULT_TOKEN = null;
 export const DEFAULT_HEARTBEAT_INTERVAL = 10000;
 
+import quitCommands from '../../config/cmds/quit.json';
+
 // These hacks are required to pretend we are the browser
 global.XMLHttpRequest = XMLHttpRequest;
 global.window = {
@@ -121,23 +123,6 @@ export default class App {
           pingFunc();
           return;
         }
-
-        const quitCommands = [
-          'exit',
-          'exit()',
-          'x',
-          'x()',
-          '\\x',
-          '/x',
-          '/exit',
-          'quit',
-          'quit()',
-          'q',
-          'q()',
-          '\\q',
-          '/q',
-          '/quit'
-        ];
 
         if (quitCommands.indexOf(line) >= 0) {
           exitFunc();
