@@ -117,7 +117,19 @@ export default class App {
       rl.on('line', (line) => {
         // console.log(line);
 
-        if (line === 'quit' || line === 'exit' || line === 'q' || line === '\\q') {
+        const quitCommands = [
+          'exit',
+          'exit()',
+          'q',
+          'q()',
+          'quit',
+          'quit()',
+          '\\q',
+          'x',
+          '\\x'
+        ];
+
+        if (quitCommands.indexOf(line) >= 0) {
           ex();
         }
 
