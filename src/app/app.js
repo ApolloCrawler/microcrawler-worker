@@ -111,6 +111,11 @@ export default class App {
       rl.on('line', (line) => {
         // console.log(line);
 
+        if (line === 'quit') {
+          process.exit(0);
+          console.log('Quitting ...');
+        }
+
         channel.push('msg', line);
 
         rl.prompt();
