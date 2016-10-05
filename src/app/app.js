@@ -77,9 +77,7 @@ export default class App {
       console.log(JSON.stringify(payload, null, 4));
     });
 
-    const heartbeatInterval = program.heartbeatInterval || DEFAULT_HEARTBEAT_INTERVAL;
-    let id = 0;
-    setInterval(() => {
+    const pingFunc = () => {
       const msg = {
         id,
         msg: 'I am still alive!',
@@ -101,7 +99,11 @@ export default class App {
 
       channel.push('ping', msg);
       id += 1;
-    }, parseInt(heartbeatInterval));
+    };
+
+    const heartbeatInterval = program.heartbeatInterval || DEFAULT_HEARTBEAT_INTERVAL;
+    let id = 0;
+    setInterval(pingFunc, parseInt(heartbeatInterval));
 
     channel.push('msg', {msg: 'Hello World!'});
 
@@ -115,7 +117,10 @@ export default class App {
       };
 
       rl.on('line', (line) => {
-        // console.log(line);
+        if (line === '/ping') {
+          pingFunc();
+          return;
+        }
 
         const quitCommands = [
           'exit',
