@@ -181,6 +181,30 @@ Received event - msg
 "Hi, how are you?"
 Received event - msg
 "Received my message?"
+Received event - msg
+{
+  "abc": "123"
+}
+Received event - msg
+{
+  "pole": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "msg": "to pole je fakt urodny"
+}
+{:shutdown, :closed}
+#PID<0.366.0>
+%Phoenix.Socket{assigns: %{rabb_chan: %AMQP.Channel{conn: %AMQP.Connection{pid: #PID<0.369.0>},
+    pid: #PID<0.379.0>}, rabb_conn: %AMQP.Connection{pid: #PID<0.369.0>}},
+ channel: MicrocrawlerWebapp.WorkerChannel, channel_pid: #PID<0.366.0>,
+ endpoint: MicrocrawlerWebapp.Endpoint, handler: MicrocrawlerWebapp.UserSocket,
+ id: nil, joined: true, pubsub_server: MicrocrawlerWebapp.PubSub, ref: nil,
+ serializer: Phoenix.Transports.WebSocketSerializer, topic: "worker:lobby",
+ transport: Phoenix.Transports.WebSocket, transport_name: :websocket,
+ transport_pid: #PID<0.364.0>}
 ```
 
 *Client*
@@ -196,5 +220,8 @@ msg> Received ok
 }
 msg> Hi, how are you?
 msg> Received my message?
-msg>
+msg> {"abc": "123"}
+msg> {"pole": [1, 2, 3, 4], "msg": "to pole je fakt urodny"}
+msg> quit
+$
 ```
