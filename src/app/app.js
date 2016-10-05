@@ -117,7 +117,7 @@ export default class App {
       rl.on('line', (line) => {
         // console.log(line);
 
-        if (line === 'quit' || line === 'exit' || line === 'q' || line === '\q') {
+        if (line === 'quit' || line === 'exit' || line === 'q' || line === '\\q') {
           ex();
         }
 
