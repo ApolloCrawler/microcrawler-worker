@@ -150,3 +150,58 @@ Received event - pong
     "ts": 1475360236777
 }
 ```
+
+***Interactive Mode***
+
+*Server*
+
+```
+$ iex -S mix phoenix.server
+Erlang/OTP 19 [erts-8.1] [source] [64-bit] [smp:4:4] [async-threads:10] [hipe] [kernel-poll:false] [dtrace]
+
+[info] Running MicrocrawlerWebapp.Endpoint with Cowboy using http://localhost:4000
+Interactive Elixir (1.3.3) - press Ctrl+C to exit (type h() ENTER for help)
+iex(1)> 05 Oct 20:54:35 - info: compiled 6 files into 2 files, copied 6 in 1.6 sec
+[info] JOIN worker:lobby to MicrocrawlerWebapp.WorkerChannel
+  Transport:  Phoenix.Transports.WebSocket
+  Parameters: %{"token" => nil}
+Received join - worker:lobby
+{
+  "token": null
+}
+#PID<0.366.0>
+[info] Replied worker:lobby :ok
+{:basic_consume_ok, %{consumer_tag: "amq.ctag-Rb-fiGVc4xTncGoOKjxyKA"}}
+#PID<0.366.0>
+Received event - msg
+{
+  "msg": "Hello World!"
+}
+Received event - msg
+"Hi, how are you?"
+Received event - msg
+"Received my message?"
+```
+
+*Client*
+
+```
+$ ./bin/microcrawler-worker.js -i --heartbeat-interval 3600000
+Connecting to "ws://localhost:4000/socket"
+Running in interactive mode.
+Type "quit" or press ctrl+c to exit.
+msg> Received ok
+{
+    "msg": "Welcome!"
+}
+msg> Hi, how are you?
+msg> Received my message?
+msg>
+```
+
+*Server*
+
+```
+```
+
+```
