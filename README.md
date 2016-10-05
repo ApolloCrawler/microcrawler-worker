@@ -198,10 +198,3 @@ msg> Hi, how are you?
 msg> Received my message?
 msg>
 ```
-
-*Server*
-
-```
-```
-
-```
