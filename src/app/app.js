@@ -72,6 +72,15 @@ export default class App {
     channel.on('crawl', (payload) => {
       console.log('Received event - crawl');
       console.log(JSON.stringify(payload, null, 4));
+      // simulate some work
+      const workDuration = (JSON.stringify(payload, null, 4).split('.').length - 1) * 1000;
+      const work = () => {
+        const msg = {
+          done: payload
+        };
+        channel.push('done', msg);
+      }
+      setTimeout(work, workDuration);
     });
 
     channel.on('pong', (payload) => {
