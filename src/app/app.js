@@ -1,6 +1,7 @@
 import os from 'os';
 import program from 'commander';
 import {Socket, LongPoll} from 'phoenix-socket';
+import uuid from 'node-uuid';
 import WebSocket from 'websocket';
 import XMLHttpRequest from 'xhr2';
 
@@ -56,7 +57,10 @@ export default class App {
 
     // Create channel
     const token = program.token || DEFAULT_TOKEN;
-    const channel = socket.channel(channelName, {token});
+    const channel = socket.channel(channelName, {
+      token,
+      uuid: uuid.v4()
+    });
     const r = channel.join()
       .receive('ok', (payload) => {
         console.log("Received ok");
