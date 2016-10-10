@@ -59,7 +59,15 @@ export default class App {
     const token = program.token || DEFAULT_TOKEN;
     const channel = socket.channel(channelName, {
       token,
-      uuid: uuid.v4()
+      uuid: uuid.v4(),
+      name: pkg.name,
+      version: pkg.version,
+      os: {
+        cpus: os.cpus(),
+        endian: os.endianness(),
+        hostname: os.hostname(),
+        platform: os.platform()
+      }
     });
     const r = channel.join()
       .receive('ok', (payload) => {
@@ -96,13 +104,7 @@ export default class App {
       const msg = {
         id,
         msg: 'I am still alive!',
-        name: pkg.name,
-        version: pkg.version,
         os: {
-          cpus: os.cpus(),
-          endian: os.endianness(),
-          hostname: os.hostname(),
-          platform: os.platform(),
           mem: {
             total: os.totalmem(),
             free: os.freemem(),
