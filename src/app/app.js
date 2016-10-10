@@ -66,7 +66,8 @@ export default class App {
         cpus: os.cpus(),
         endian: os.endianness(),
         hostname: os.hostname(),
-        platform: os.platform()
+        platform: os.platform(),
+        uptime: os.uptime()
       }
     });
     const r = channel.join()
