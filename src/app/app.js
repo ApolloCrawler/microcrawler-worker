@@ -41,6 +41,7 @@ export default class App {
 
     let id = 0;
     const pingFunc = () => {
+      console.log('Executing ping function.');
       const msg = {
         id,
         msg: 'I am still alive!',
@@ -62,11 +63,13 @@ export default class App {
     const heartbeatInterval = program.heartbeatInterval || DEFAULT_HEARTBEAT_INTERVAL;
     let registerPingFunction = () => {
       unregisterPingFunction();
+      console.log('Registering ping function.');
       pingInterval = setInterval(pingFunc, parseInt(heartbeatInterval));
     };
 
     let unregisterPingFunction = () => {
       if (pingInterval) {
+        console.log('Unregistering ping function.');
         clearInterval(pingInterval);
         pingInterval = null;
       }
