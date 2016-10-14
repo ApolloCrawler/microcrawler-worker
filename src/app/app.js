@@ -75,10 +75,40 @@ export default class App {
         load: os.loadavg(),
       }
     });
+
+    const heartbeatInterval = program.heartbeatInterval || DEFAULT_HEARTBEAT_INTERVAL;
+    let id = 0;
+
+    const pingFunc = () => {
+      const msg = {
+        id,
+        msg: 'I am still alive!',
+        os: {
+          mem: {
+            total: os.totalmem(),
+            free: os.freemem(),
+          },
+          load: os.loadavg(),
+          uptime: os.uptime()
+        }
+      };
+
+      channel.push('ping', msg);
+      id += 1;
+    };
+
+    let pingInterval = null;
     const r = channel.join()
       .receive('ok', (payload) => {
         console.log("Received ok");
         console.log(JSON.stringify(payload, null, 4));
+
+        if (pingInterval) {
+          clearInterval(pingInterval);
+          pingInterval = null;
+        }
+
+        pingInterval = setInterval(pingFunc, parseInt(heartbeatInterval));
       })
       .receive('error', ({reason}) => {
         console.log("Failed join", reason)
@@ -105,28 +135,6 @@ export default class App {
       console.log('Received event - pong');
       console.log(JSON.stringify(payload, null, 4));
     });
-
-    const pingFunc = () => {
-      const msg = {
-        id,
-        msg: 'I am still alive!',
-        os: {
-          mem: {
-            total: os.totalmem(),
-            free: os.freemem(),
-          },
-          load: os.loadavg(),
-          uptime: os.uptime()
-        }
-      };
-
-      channel.push('ping', msg);
-      id += 1;
-    };
-
-    const heartbeatInterval = program.heartbeatInterval || DEFAULT_HEARTBEAT_INTERVAL;
-    let id = 0;
-    setInterval(pingFunc, parseInt(heartbeatInterval));
 
     channel.push('msg', {msg: 'Hello World!'});
 
