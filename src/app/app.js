@@ -1,11 +1,9 @@
 import os from 'os';
 import program from 'commander';
-import {Socket, LongPoll} from 'phoenix-socket';
+import {Socket} from 'phoenix-socket';
 import uuid from 'node-uuid';
 import WebSocket from 'websocket';
 import XMLHttpRequest from 'xhr2';
-
-import readline from 'readline';
 
 import pkg from '../../package.json';
 
@@ -14,8 +12,6 @@ export const DEFAULT_CHANNEL = 'worker:lobby';
 export const DEFAULT_TOKEN = null;
 export const DEFAULT_HEARTBEAT_INTERVAL = 10000;
 
-import quitCommands from '../../config/cmds/quit.json';
-
 // These hacks are required to pretend we are the browser
 global.XMLHttpRequest = XMLHttpRequest;
 global.window = {
@@ -23,7 +19,158 @@ global.window = {
   XMLHttpRequest
 };
 
+/**
+ * Construct message which is send during joining the channel
+ * @param token Optional token
+ * @returns {{token: *, uuid: *, name, version, os: {cpus: *, endian: *, hostname: *, platform: *, uptime: *, mem: {total: *, free: *}, load: *}}}
+ */
+export function constructJoinMessage(token = null) {
+  return {
+    token,
+    uuid: uuid.v4(),
+    name: pkg.name,
+    version: pkg.version,
+    os: {
+      cpus: os.cpus(),
+      endian: os.endianness(),
+      hostname: os.hostname(),
+      platform: os.platform(),
+      uptime: os.uptime(),
+      mem: {
+        total: os.totalmem(),
+        free: os.freemem(),
+      },
+      load: os.loadavg(),
+    }
+  };
+}
+
+/**
+ * Construct ping message
+ * @param id ID of the message to be send
+ * @returns {{id: *, msg: string, os: {mem: {total: *, free: *}, load: *, uptime: *}}}
+ */
+export function constructPingMessage(id) {
+  return {
+    id,
+    msg: 'I am still alive!',
+    os: {
+      mem: {
+        total: os.totalmem(),
+        free: os.freemem(),
+      },
+      load: os.loadavg(),
+      uptime: os.uptime()
+    }
+  };
+}
+
+/**
+ * Create new channel
+ * @param socket Socket to be used for creating channel
+ * @param channelName Name of channel to be joined to
+ * @param token Authorization token
+ * @param registerPingFunction Function used for registering ping function - callback
+ * @param unregisterPingFunction Function used for unregistering ping function - callback
+ */
+export function createChannel(socket, channelName, token, registerPingFunction, unregisterPingFunction) {
+  const channel = socket.channel(channelName, constructJoinMessage(token));
+
+  /* const _channel = */
+  channel.join()
+    .receive('ok', (payload) => {
+      console.log('Received ok');
+      console.log(JSON.stringify(payload, null, 4));
+      registerPingFunction(channel);
+    })
+    .receive('error', ({reason}) => {
+      console.log('Failed join', reason);
+      unregisterPingFunction();
+    })
+    .receive('timeout', () => {
+      console.log('Networking issue. Still waiting...');
+    });
+
+  channel.on('pong', (payload) => {
+    console.log('Received event - pong');
+    console.log(JSON.stringify(payload, null, 4));
+  });
+
+  channel.push('msg', {msg: 'Hello World!'});
+}
+
+/**
+ * Create socket
+ * @param url - URL to be connected to
+ * @param unregisterPingFunction
+ * @returns {Socket}
+ */
+export function createSocket(url, unregisterPingFunction) {
+  console.log(`Connecting to "${url}"`);
+  const socket = new Socket(url, {
+    transport: global.window.WebSocket
+  });
+
+  // Error handler
+  socket.onError((err) => {
+    console.log('There was an error with the connection!');
+    unregisterPingFunction();
+    console.log(err);
+  });
+
+  // Close handler
+  socket.onClose(() => {
+    console.log('The connection dropped.');
+    unregisterPingFunction();
+  });
+
+  return socket;
+}
+
+/**
+ * Send ping function to channel
+ * @param channel Channel to send the message to
+ * @param id ID of the message
+ */
+export function pingFunction(channel, id) {
+  console.log('Executing ping function.');
+  channel.push('ping', constructPingMessage(id));
+}
+
 export default class App {
+  constructor() {
+    this.pingFunctionInterval = null;
+  }
+
+  /**
+   * Register ping function
+   * @param channel Channel to be used by ping fuction
+   * @param heartbeatInterval Interval between pings
+   */
+  registerPingFunction(channel, heartbeatInterval = 10000) {
+    console.log('Registering ping function.');
+
+    let id = 0;
+    this.pingFunctionInterval = setInterval(
+      () => {
+        pingFunction(channel, id);
+        id += 1;
+      },
+      heartbeatInterval
+    );
+  }
+
+  /**
+   * Unegister ping function
+   */
+  unregisterPingFunction() {
+    if (this.pingFunctionInterval) {
+      console.log('Unregistering ping function.');
+      clearInterval(this.pingFunctionInterval);
+      this.pingFunctionInterval = null;
+    }
+  }
+
   main(args = process.argv) {
     program
       .version(pkg.version)
@@ -34,161 +181,17 @@ export default class App {
       .option('-t, --token <TOKEN>', `Token used for authorization, default: ${DEFAULT_TOKEN}`)
       .parse(args);
 
+    // Create socket
     const url = program.url || DEFAULT_URL;
-
-    console.log(`Connecting to "${url}"`);
-    let socket = new Socket(url, {transport: global.window.WebSocket});
-
-    let id = 0;
-    const pingFunc = () => {
-      console.log('Executing ping function.');
-      const msg = {
-        id,
-        msg: 'I am still alive!',
-        os: {
-          mem: {
-            total: os.totalmem(),
-            free: os.freemem(),
-          },
-          load: os.loadavg(),
-          uptime: os.uptime()
-        }
-      };
-
-      channel.push('ping', msg);
-      id += 1;
-    };
-
-    let pingInterval = null;
-    const heartbeatInterval = program.heartbeatInterval || DEFAULT_HEARTBEAT_INTERVAL;
-    let registerPingFunction = () => {
-      unregisterPingFunction();
-      console.log('Registering ping function.');
-      pingInterval = setInterval(pingFunc, parseInt(heartbeatInterval));
-    };
-
-    let unregisterPingFunction = () => {
-      if (pingInterval) {
-        console.log('Unregistering ping function.');
-        clearInterval(pingInterval);
-        pingInterval = null;
-      }
-    };
-
-    // Error handler
-    socket.onError((err) => {
-      console.log('There was an error with the connection!');
-      unregisterPingFunction();
-      console.log(err);
-    });
-
-    // Close handler
-    socket.onClose(() => {
-      console.log('The connection dropped.');
-      unregisterPingFunction();
-    });
+    const socket = createSocket(url, this.unregisterPingFunction.bind(this));
 
     // Try to connect
     socket.connect();
 
-    const channelName = program.channel || DEFAULT_CHANNEL;
-
     // Create channel
+    const channelName = program.channel || DEFAULT_CHANNEL;
     const token = program.token || DEFAULT_TOKEN;
-    const channel = socket.channel(channelName, {
-      token,
-      uuid: uuid.v4(),
-      name: pkg.name,
-      version: pkg.version,
-      os: {
-        cpus: os.cpus(),
-        endian: os.endianness(),
-        hostname: os.hostname(),
-        platform: os.platform(),
-        uptime: os.uptime(),
-        mem: {
-          total: os.totalmem(),
-          free: os.freemem(),
-        },
-        load: os.loadavg(),
-      }
-    });
 
-    const r = channel.join()
-      .receive('ok', (payload) => {
-        console.log("Received ok");
-        console.log(JSON.stringify(payload, null, 4));
-        registerPingFunction();
-      })
-      .receive('error', ({reason}) => {
-        console.log("Failed join", reason);
-        unregisterPingFunction();
-      })
-      .receive('timeout', () => {
-        console.log("Networking issue. Still waiting...")
-      });
-
-    channel.on('crawl', (payload) => {
-      console.log('Received event - crawl');
-      console.log(JSON.stringify(payload, null, 4));
-      // simulate some work
-      const workDuration = (JSON.stringify(payload, null, 4).split('.').length - 1) * 1000;
-      const work = () => {
-        const msg = {
-          done: payload
-        };
-        channel.push('done', msg);
-      }
-      setTimeout(work, workDuration);
-    });
-
-    channel.on('pong', (payload) => {
-      console.log('Received event - pong');
-      console.log(JSON.stringify(payload, null, 4));
-    });
-
-    channel.push('msg', {msg: 'Hello World!'});
-
-    const prefix = 'msg> ';
-    if (program.interactive) {
-      const rl = readline.createInterface(process.stdin, process.stdout);
-
-      const exitFunc = () => {
-        process.exit(0);
-        console.log('Quitting ...');
-      };
-
-      rl.on('line', (line) => {
-        if (line === '/ping') {
-          pingFunc();
-          return;
-        }
-
-        if (quitCommands.indexOf(line) >= 0) {
-          exitFunc();
-        }
-
-        let rawMessage = null;
-
-        try {
-          rawMessage = JSON.parse(line);
-        } catch(e) {
-          rawMessage = line;
-        }
-
-        if (rawMessage) {
-          channel.push('msg', rawMessage);
-        }
-
-        rl.prompt();
-      });
-
-      console.log('Running in interactive mode.');
-      console.log('Type "quit", "exit" or press ctrl+c twice to exit.');
-      rl.setPrompt(prefix, prefix.length);
-
-      rl.prompt();
-    }
+    /* const channel = */ createChannel(socket, channelName, token, this.registerPingFunction.bind(this), this.unregisterPingFunction.bind(this));
   }
-};
-
+}
