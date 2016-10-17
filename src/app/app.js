@@ -91,6 +91,20 @@ export function createChannel(socket, channelName, token, registerPingFunction, 
       console.log('Networking issue. Still waiting...');
     });
 
+  channel.on('crawl', (payload) => {
+    console.log('Received event - crawl');
+    console.log(JSON.stringify(payload, null, 4));
+    // simulate some work
+    const workDuration = (JSON.stringify(payload, null, 4).split('.').length - 1) * 1000;
+    const work = function work() {
+      const msg = {
+        done: payload
+      };
+      channel.push('done', msg);
+    };
+    setTimeout(work, workDuration);
+  });
+
   channel.on('pong', (payload) => {
     console.log('Received event - pong');
     console.log(JSON.stringify(payload, null, 4));
