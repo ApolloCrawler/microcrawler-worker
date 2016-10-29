@@ -27,6 +27,7 @@
     "bufferutil": "^1.2.1",
     "colors": "^1.1.2",
     "commander": "^2.9.0",
+    "homedir": "^0.6.0",
     "microcrawler-crawler-all": "0.0.7",
     "node-uuid": "^1.4.7",
     "phoenix-socket": "git://github.com/bossek/phoenix_socket.git#v1.2.patched",

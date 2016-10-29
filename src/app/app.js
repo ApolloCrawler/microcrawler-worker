@@ -1,4 +1,6 @@
 import os from 'os';
+import fs from 'fs';
+import path from 'path';
 import program from 'commander';
 import {Socket} from 'phoenix-socket';
 import uuid from 'node-uuid';
@@ -7,10 +9,27 @@ import XMLHttpRequest from 'xhr2';
 
 import pkg from '../../package.json';
 
+export function configDir() {
+  return path.join(os.homedir ? os.homedir() : require('homedir')(), '.microcrawler');
+}
+
+export function tokenFilename() {
+  return path.join(configDir(), 'token.jwt');
+}
+
+let TOKEN;
+try {
+  TOKEN = String(fs.readFileSync(tokenFilename())).trim();
+} catch (err) {
+  console.log(err);
+  TOKEN = null;
+}
+
 export const DEFAULT_URL = 'ws://localhost:4000/socket';
 export const DEFAULT_CHANNEL = 'worker:lobby';
-export const DEFAULT_TOKEN = null;
+export const DEFAULT_TOKEN = TOKEN;
 export const DEFAULT_HEARTBEAT_INTERVAL = 10000;
+
 
 // These hacks are required to pretend we are the browser
 global.XMLHttpRequest = XMLHttpRequest;
