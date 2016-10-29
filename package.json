@@ -30,6 +30,7 @@
     "microcrawler-crawler-all": "0.0.7",
     "node-uuid": "^1.4.7",
     "phoenix-socket": "git://github.com/bossek/phoenix_socket.git#v1.2.patched",
+    "superagent": "^2.3.0",
     "utf-8-validate": "^1.2.1",
     "websocket": "^1.0.23",
     "xhr2": "^0.1.3"
