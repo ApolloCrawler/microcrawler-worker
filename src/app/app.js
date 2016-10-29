@@ -2,6 +2,7 @@ import os from 'os';
 import fs from 'fs';
 import path from 'path';
 import program from 'commander';
+import request from 'superagent';
 import {Socket} from 'phoenix-socket';
 import uuid from 'node-uuid';
 import WebSocket from 'websocket';
@@ -13,23 +14,21 @@ export function configDir() {
   return path.join(os.homedir ? os.homedir() : require('homedir')(), '.microcrawler');
 }
 
-export function tokenFilename() {
-  return path.join(configDir(), 'token.jwt');
-}
+export const TOKEN_PATH = path.join(configDir(), 'token.jwt');
 
-let TOKEN;
-try {
-  TOKEN = String(fs.readFileSync(tokenFilename())).trim();
-} catch (err) {
-  console.log(err);
-  TOKEN = null;
-}
+export const TOKEN = ((tokenPath) => {
+  if (fs.existsSync(tokenPath) === false) {
+    return null;
+  }
+
+  return fs.readFileSync(tokenPath).toString().trim();
+})(TOKEN_PATH);
 
 export const DEFAULT_URL = 'ws://localhost:4000/socket';
+export const DEFAULT_URL_AUTH = 'http://localhost:4000/api/v1/auth/signin';
 export const DEFAULT_CHANNEL = 'worker:lobby';
 export const DEFAULT_TOKEN = TOKEN;
 export const DEFAULT_HEARTBEAT_INTERVAL = 10000;
-
 
 // These hacks are required to pretend we are the browser
 global.XMLHttpRequest = XMLHttpRequest;
@@ -212,19 +211,64 @@ export default class App {
       .option('-i, --interactive', 'Run interactive mode')
       .option('-u, --url <URL>', `URL to connect to, default: ${DEFAULT_URL}`)
       .option('-t, --token <TOKEN>', `Token used for authorization, default: ${DEFAULT_TOKEN}`)
+      .option('-a, --url-auth <URL>', `URL used for authentication, default: ${DEFAULT_URL_AUTH}`)
+      .option('--username <EMAIL>', 'Username')
+      .option('--password <PASSWORD>', 'Password')
       .parse(args);
 
-    // Create socket
-    const url = program.url || DEFAULT_URL;
-    const socket = createSocket(url, this.unregisterPingFunction.bind(this));
+    let promise = Promise.resolve(true);
 
-    // Try to connect
-    socket.connect();
+    const urlAuth = program.urlAuth || DEFAULT_URL_AUTH;
+    const username = program.username;
+    const password = program.password;
+    if (username && password) {
+      const payload = {
+        email: username,
+        password
+      };
 
-    // Create channel
-    const channelName = program.channel || DEFAULT_CHANNEL;
-    const token = program.token || DEFAULT_TOKEN;
+      promise = new Promise(
+        (resolve, reject) => {
+          request
+            .post(urlAuth)
+            .send(payload)
+            .end(
+              (err, result) => {
+                if (err) {
+                  return reject(err);
+                }
 
-    /* const channel = */ createChannel(socket, channelName, token, this.registerPingFunction.bind(this), this.unregisterPingFunction.bind(this));
+                return resolve(result);
+              }
+            );
+        }
+      );
+
+      promise.then(
+        (result) => {
+          const jwt = result.body.jwt;
+          console.log(`Storing token in ${TOKEN_PATH}`);
+          fs.writeFileSync(TOKEN_PATH, `${jwt}\n`);
+        },
+        (error) => {
+          console.log(error);
+        }
+      );
+    }
+
+    promise.then(() => {
+      // Create socket
+      const url = program.url || DEFAULT_URL;
+      const socket = createSocket(url, this.unregisterPingFunction.bind(this));
+
+      // Try to connect
+      socket.connect();
+
+      // Create channel
+      const channelName = program.channel || DEFAULT_CHANNEL;
+      const token = program.token || DEFAULT_TOKEN;
+
+      /* const channel = */ createChannel(socket, channelName, token, this.registerPingFunction.bind(this), this.unregisterPingFunction.bind(this));
+    });
   }
 }
