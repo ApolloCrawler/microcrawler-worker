@@ -24,7 +24,7 @@ export const TOKEN = ((tokenPath) => {
   return fs.readFileSync(tokenPath).toString().trim();
 })(TOKEN_PATH);
 
-export const DEFAULT_URL = 'ws://localhost:4000/socket';
+export const DEFAULT_URL = 'ws://localhost:4000/worker';
 export const DEFAULT_URL_AUTH = 'http://localhost:4000/api/v1/auth/signin';
 export const DEFAULT_CHANNEL = 'worker:lobby';
 export const DEFAULT_TOKEN = TOKEN;
@@ -39,12 +39,10 @@ global.window = {
 
 /**
  * Construct message which is send during joining the channel
- * @param token Optional token
  * @returns {{token: *, uuid: *, name, version, os: {cpus: *, endian: *, hostname: *, platform: *, uptime: *, mem: {total: *, free: *}, load: *}}}
  */
-export function constructJoinMessage(token = null) {
+export function constructJoinMessage() {
   return {
-    token,
     uuid: uuid.v4(),
     name: pkg.name,
     version: pkg.version,
@@ -134,12 +132,14 @@ export function createChannel(socket, channelName, token, registerPingFunction, 
 /**
  * Create socket
  * @param url - URL to be connected to
+ * @param token - jwt for worker authentication
  * @param unregisterPingFunction
  * @returns {Socket}
  */
-export function createSocket(url, unregisterPingFunction) {
+export function createSocket(url, token, unregisterPingFunction) {
   console.log(`Connecting to "${url}"`);
   const socket = new Socket(url, {
+    params: {guardian_token: token},
     transport: global.window.WebSocket
   });
 
@@ -259,16 +259,16 @@ export default class App {
     promise.then(() => {
       // Create socket
       const url = program.url || DEFAULT_URL;
-      const socket = createSocket(url, this.unregisterPingFunction.bind(this));
+      const token = program.token || DEFAULT_TOKEN;
+      const socket = createSocket(url, token, this.unregisterPingFunction.bind(this));
 
       // Try to connect
       socket.connect();
 
       // Create channel
       const channelName = program.channel || DEFAULT_CHANNEL;
-      const token = program.token || DEFAULT_TOKEN;
 
-      /* const channel = */ createChannel(socket, channelName, token, this.registerPingFunction.bind(this), this.unregisterPingFunction.bind(this));
+      /* const channel = */ createChannel(socket, channelName, this.registerPingFunction.bind(this), this.unregisterPingFunction.bind(this));
     });
   }
 }
