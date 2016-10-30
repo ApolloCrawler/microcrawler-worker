@@ -33,7 +33,9 @@
     "__SERVER__": true,
     "__DISABLE_SSR__": true,
     "__DEVTOOLS__": true,
+    "describe": true,
     "document": true,
-    "window": true
+    "it": true,
+    "window": true,
   }
 }

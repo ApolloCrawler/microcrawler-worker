@@ -1,10 +1,14 @@
+require('babel-core/register');
+
 const gulp = require('gulp');
 const babel = require('gulp-babel');
 const eslint = require('gulp-eslint');
+const mocha  = require('gulp-mocha');
 
 const files = {
   sources: [
-    'src/**/*.js'
+    'src/**/*.js',
+    'test/**/*.js'
   ]
 };
 
@@ -14,9 +18,7 @@ gulp.task('build', ['lint'], () => {
     .pipe(gulp.dest('lib'));
 });
 
-gulp.task('default', () => {
-  gulp.start('build');
-});
+gulp.task('default', ['build']);
 
 gulp.task('lint', () => {
   // ESLint ignores files with "node_modules" paths.
@@ -35,6 +37,13 @@ gulp.task('lint', () => {
     .pipe(eslint.failAfterError());
 });
 
-gulp.task('watch', ['build'], () => {
-  gulp.watch(files.sources, ['build']);
+gulp.task('test', ['build'], () =>
+  gulp.src('test/**/*.js', {read: false})
+  // gulp-mocha needs filepaths so you can't have any plugins before it
+    .pipe(mocha())
+);
+
+
+gulp.task('watch', ['test'], () => {
+  gulp.watch(files.sources, ['test']);
 });
