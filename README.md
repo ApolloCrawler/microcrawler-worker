@@ -3,6 +3,8 @@
 ## Status
 
 [![Build Status](https://travis-ci.org/ApolloCrawler/microcrawler-worker.svg?branch=master)](https://travis-ci.org/ApolloCrawler/microcrawler-worker)
+[![License](https://img.shields.io/github/license/ApolloCrawler/microcrawler-worker.svg)]()
+[![Dependency Status](https://gemnasium.com/badges/github.com/ApolloCrawler/microcrawler-worker.svg)](https://gemnasium.com/github.com/ApolloCrawler/microcrawler-worker)
 
 ## Prerequisities
 
