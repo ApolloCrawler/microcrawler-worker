@@ -1,5 +1,9 @@
 # Microcrawler Worker
 
+## Status
+
+[![Build Status](https://travis-ci.org/ApolloCrawler/microcrawler-worker.svg?branch=master)](https://travis-ci.org/ApolloCrawler/microcrawler-worker)
+
 ## Prerequisities
 
 - [microcrawler-webapp](https://github.com/ApolloCrawler/microcrawler-webapp)
