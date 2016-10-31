@@ -39,7 +39,7 @@ global.window = {
 
 /**
  * Construct message which is send during joining the channel
- * @returns {{token: *, uuid: *, name, version, os: {cpus: *, endian: *, hostname: *, platform: *, uptime: *, mem: {total: *, free: *}, load: *}}}
+ * @returns {{uuid: *, name, version, os: {cpus: *, endian: *, hostname: *, platform: *, uptime: *, mem: {total: *, free: *}, load: *}}}
  */
 export function constructJoinMessage() {
   return {
@@ -85,12 +85,11 @@ export function constructPingMessage(id) {
  * Create new channel
  * @param socket Socket to be used for creating channel
  * @param channelName Name of channel to be joined to
- * @param token Authorization token
  * @param registerPingFunction Function used for registering ping function - callback
  * @param unregisterPingFunction Function used for unregistering ping function - callback
  */
-export function createChannel(socket, channelName, token, registerPingFunction, unregisterPingFunction) {
-  const channel = socket.channel(channelName, constructJoinMessage(token));
+export function createChannel(socket, channelName, registerPingFunction, unregisterPingFunction) {
+  const channel = socket.channel(channelName, constructJoinMessage());
 
   /* const _channel = */
   channel.join()
