@@ -22,6 +22,8 @@ before_install:
   - "docker-compose up -d postgres"
   - "sleep 15"
   - "docker-compose up -d"
+  - "sleep 15"
+  - "curl http://localhost:4000"
 
 before_script:
   - npm run gulp
