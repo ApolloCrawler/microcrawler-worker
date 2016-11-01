@@ -14,8 +14,8 @@ services:
 #      - "15672:15672"
   webapp:
     image: korczis/microcrawler-webapp
-#    ports:
-#      - "4000:4000"
+    ports:
+      - "4000:4000"
     depends_on:
       - postgres
       - rabbitmq
