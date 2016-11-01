@@ -2,20 +2,20 @@ version: '2'
 services:
   postgres:
     image: postgres
-    ports:
-      - "5432:5432"
+#    ports:
+#      - "5432:5432"
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
   rabbitmq:
     image: rabbitmq:3-management
-    ports:
-      - "5672:5672"
-      - "15672:15672"
+#    ports:
+#      - "5672:5672"
+#      - "15672:15672"
   webapp:
     image: korczis/microcrawler-webapp
-    ports:
-      - "4000:4000"
+#    ports:
+#      - "4000:4000"
     depends_on:
       - postgres
       - rabbitmq
