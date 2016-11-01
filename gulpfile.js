@@ -7,7 +7,9 @@ const mocha  = require('gulp-mocha');
 
 const files = {
   sources: [
-    'src/**/*.js',
+    'src/**/*.js'
+  ],
+  tests: [
     'test/**/*.js'
   ]
 };
@@ -25,7 +27,7 @@ gulp.task('lint', () => {
   // So, it's best to have gulp ignore the directory as well.
   // Also, Be sure to return the stream from the task;
   // Otherwise, the task may end before the stream has finished.
-  return gulp.src([...files.sources, '!node_modules/**'])
+  return gulp.src([...files.sources, ...files.tests, '!node_modules/**'])
   // eslint() attaches the lint output to the "eslint" property
   // of the file object so it can be used by other modules.
     .pipe(eslint())
@@ -38,12 +40,12 @@ gulp.task('lint', () => {
 });
 
 gulp.task('test', ['build'], () =>
-  gulp.src('test/**/*.js', {read: false})
+  gulp.src(...files.tests, {read: false})
   // gulp-mocha needs filepaths so you can't have any plugins before it
     .pipe(mocha())
 );
 
 
 gulp.task('watch', ['test'], () => {
-  gulp.watch(files.sources, ['test']);
+  gulp.watch([...files.sources, ...files.tests], ['test']);
 });

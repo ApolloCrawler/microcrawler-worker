@@ -30,6 +30,7 @@
     "commander": "^2.9.0",
     "homedir": "^0.6.0",
     "microcrawler-crawler-all": "0.0.7",
+    "mocha": "^3.1.2",
     "node-uuid": "^1.4.7",
     "phoenix-socket": "git://github.com/bossek/phoenix_socket.git#v1.2.patched",
     "superagent": "^2.3.0",
@@ -49,7 +50,6 @@
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
     "gulp-eslint": "^3.0.1",
-    "gulp-mocha": "^3.0.1",
-    "mocha": "^3.1.2"
+    "gulp-mocha": "^3.0.1"
   }
 }
