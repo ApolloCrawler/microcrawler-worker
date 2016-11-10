@@ -313,7 +313,7 @@ export default class App {
 
       promise.then(
         (result) => {
-          const jwt = result.body.jwt;
+          const jwt = result.body.user.workerJWT;
           console.log(`Storing token in ${TOKEN_PATH}`);
           fs.writeFileSync(TOKEN_PATH, `${jwt}\n`);
         },
