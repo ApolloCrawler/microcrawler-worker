@@ -1,8 +1,11 @@
+import cheerio from 'cheerio';
 import os from 'os';
 import fs from 'fs';
+import glob from 'glob';
 import path from 'path';
 import program from 'commander';
 import request from 'superagent';
+import R from 'ramda';
 import {Socket} from 'phoenix-socket';
 import uuid from 'node-uuid';
 import WebSocket from 'websocket';
@@ -88,7 +91,7 @@ export function constructPingMessage(id) {
  * @param registerPingFunction Function used for registering ping function - callback
  * @param unregisterPingFunction Function used for unregistering ping function - callback
  */
-export function createChannel(socket, channelName, registerPingFunction, unregisterPingFunction) {
+export function createChannel(socket, channelName, registerPingFunction, unregisterPingFunction, crawlers) {
   const channel = socket.channel(channelName, constructJoinMessage());
 
   /* const _channel = */
@@ -106,18 +109,39 @@ export function createChannel(socket, channelName, registerPingFunction, unregis
       console.log('Networking issue. Still waiting...');
     });
 
-  channel.on('crawl', (payload) => {
+  channel.on('crawl', (data) => {
     console.log('Received event - crawl');
+
+    const payload = JSON.parse(data.payload);
     console.log(JSON.stringify(payload, null, 4));
-    // simulate some work
-    const workDuration = (JSON.stringify(payload, null, 4).split('.').length - 1) * 1000;
-    const work = function work() {
-      const msg = {
-        done: payload
-      };
-      channel.push('done', msg);
-    };
-    setTimeout(work, workDuration);
+
+    request
+      .get(payload.url)
+      .end(
+        (err, result) => {
+          if (err) {
+            return channel.push('done', {
+              error: err
+            });
+          }
+
+          const text = result.text;
+          const doc = cheerio.load(text);
+
+          const crawler = crawlers[payload.crawler] || {};
+          const processor = crawler.processors && crawler.processors[payload.processor];
+          if (processor) {
+            const response = processor(doc, payload);
+            console.log(JSON.stringify(response, null, 4));
+
+            return channel.push('done', response);
+          }
+
+          return channel.push('done', {
+            error: 'crawler/processor not found'
+          });
+        }
+      );
   });
 
   channel.on('pong', (payload) => {
@@ -156,6 +180,46 @@ export function createSocket(url, token, unregisterPingFunction) {
   });
 
   return socket;
+}
+
+/**
+ * Load Crawlers
+ * @returns {Promise}
+ */
+export function loadCrawlers() {
+  return new Promise((resolve, reject) => {
+    const p = path.join(__dirname, '..', '..', 'node_modules');
+    glob(`${p}/microcrawler-crawler-*/package.json`, (err, paths) => {
+      if (err) {
+        return reject(err);
+      }
+
+      let res = R.reject((item) => {
+        return item.includes('microcrawler-crawler-all') || item.includes('microcrawler-crawler-base');
+      }, paths);
+
+      res = R.map((item) => {
+        const dir = path.dirname(item);
+        return {
+          name: path.basename(dir),
+          path: item,
+          dir,
+          pkg: JSON.parse(fs.readFileSync(item, 'utf8'))
+        };
+      }, res);
+
+      const map = {};
+      R.forEach((item) => {
+        map[item.name] = item;
+        map[item.name].processors = {};
+        R.forEach((processor) => {
+          map[item.name].processors[processor] = require(path.join(item.dir, item.pkg.crawler.processors[processor]));
+        }, Object.keys(item.pkg.crawler.processors));
+      }, res);
+
+      return resolve(map);
+    });
+  });
 }
 
 /**
@@ -215,7 +279,11 @@ export default class App {
       .option('--password <PASSWORD>', 'Password')
       .parse(args);
 
-    let promise = Promise.resolve(true);
+    let crawlers = null;
+    let promise = loadCrawlers().then((res) => {
+      crawlers = res;
+      return Promise.resolve(true);
+    });
 
     const urlAuth = program.urlAuth || DEFAULT_URL_AUTH;
     const username = program.username;
@@ -267,7 +335,7 @@ export default class App {
       // Create channel
       const channelName = program.channel || DEFAULT_CHANNEL;
 
-      /* const channel = */ createChannel(socket, channelName, this.registerPingFunction.bind(this), this.unregisterPingFunction.bind(this));
+      /* const channel = */ createChannel(socket, channelName, this.registerPingFunction.bind(this), this.unregisterPingFunction.bind(this), crawlers);
     });
   }
 }
