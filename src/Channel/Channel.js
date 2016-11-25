@@ -1,44 +1,10 @@
 import cheerio from 'cheerio';
 import os from 'os';
-import fs from 'fs';
-import glob from 'glob';
-import path from 'path';
-import program from 'commander';
 import request from 'superagent';
-import R from 'ramda';
 import {Socket} from 'phoenix-socket';
 import uuid from 'node-uuid';
-import WebSocket from 'websocket';
-import XMLHttpRequest from 'xhr2';
 
 import pkg from '../../package.json';
-
-export function configDir() {
-  return path.join(os.homedir ? os.homedir() : require('homedir')(), '.microcrawler');
-}
-
-export const TOKEN_PATH = path.join(configDir(), 'token.jwt');
-
-export const TOKEN = ((tokenPath) => {
-  if (fs.existsSync(tokenPath) === false) {
-    return null;
-  }
-
-  return fs.readFileSync(tokenPath).toString().trim();
-})(TOKEN_PATH);
-
-export const DEFAULT_URL = 'ws://localhost:4000/worker';
-export const DEFAULT_URL_AUTH = 'http://localhost:4000/api/v1/auth/signin';
-export const DEFAULT_CHANNEL = 'worker:lobby';
-export const DEFAULT_TOKEN = TOKEN;
-export const DEFAULT_HEARTBEAT_INTERVAL = 10000;
-
-// These hacks are required to pretend we are the browser
-global.XMLHttpRequest = XMLHttpRequest;
-global.window = {
-  WebSocket: WebSocket.w3cwebsocket,
-  XMLHttpRequest
-};
 
 /**
  * Construct message which is send during joining the channel
@@ -112,7 +78,13 @@ export function createChannel(socket, channelName, registerPingFunction, unregis
   channel.on('crawl', (data) => {
     console.log('Received event - crawl');
 
-    const payload = JSON.parse(data.payload);
+    let payload = null;
+    try {
+      payload = JSON.parse(data.payload);
+    } catch (e) {
+      console.log(`Parsing JSON failed, reason: ${e}`, e, data.payload);
+    }
+
     console.log(JSON.stringify(payload, null, 4));
 
     request
@@ -129,6 +101,11 @@ export function createChannel(socket, channelName, registerPingFunction, unregis
           const doc = cheerio.load(text);
 
           const crawler = crawlers[payload.crawler] || {};
+          console.log(crawler);
+          if (crawler === {}) {
+            console.log(`Unable to find crawler named: '${payload.crawler}'`);
+          }
+
           const processor = crawler.processors && crawler.processors[payload.processor];
           if (processor) {
             const response = processor(doc, payload);
@@ -136,6 +113,8 @@ export function createChannel(socket, channelName, registerPingFunction, unregis
 
             return channel.push('done', response);
           }
+
+          console.log(`Unable to find processor named: '${payload.processor}'`);
 
           return channel.push('done', {
             error: 'crawler/processor not found'
@@ -150,6 +129,16 @@ export function createChannel(socket, channelName, registerPingFunction, unregis
   });
 
   channel.push('msg', {msg: 'Hello World!'});
+}
+
+/**
+ * Send ping function to channel
+ * @param channel Channel to send the message to
+ * @param id ID of the message
+ */
+export function pingFunction(channel, id) {
+  console.log('Executing ping function.');
+  channel.push('ping', constructPingMessage(id));
 }
 
 /**
@@ -182,61 +171,7 @@ export function createSocket(url, token, unregisterPingFunction) {
   return socket;
 }
 
-/**
- * Load Crawlers
- * @returns {Promise}
- */
-export function loadCrawlers() {
-  return new Promise((resolve, reject) => {
-    const p = path.join(__dirname, '..', '..', 'node_modules');
-    glob(`${p}/microcrawler-crawler-*/package.json`, (err, paths) => {
-      if (err) {
-        return reject(err);
-      }
-
-      let res = R.reject((item) => {
-        return item.includes('microcrawler-crawler-all') || item.includes('microcrawler-crawler-base');
-      }, paths);
-
-      res = R.map((item) => {
-        const dir = path.dirname(item);
-        return {
-          name: path.basename(dir),
-          path: item,
-          dir,
-          pkg: JSON.parse(fs.readFileSync(item, 'utf8'))
-        };
-      }, res);
-
-      const map = {};
-      R.forEach((item) => {
-        map[item.name] = item;
-        map[item.name].processors = {};
-        R.forEach((processor) => {
-          map[item.name].processors[processor] = require(path.join(item.dir, item.pkg.crawler.processors[processor]));
-        }, Object.keys(item.pkg.crawler.processors));
-      }, res);
-
-      return resolve(map);
-    });
-  });
-}
-
-/**
- * Send ping function to channel
- * @param channel Channel to send the message to
- * @param id ID of the message
- */
-export function pingFunction(channel, id) {
-  console.log('Executing ping function.');
-  channel.push('ping', constructPingMessage(id));
-}
-
-export default class App {
-  constructor() {
-    this.pingFunctionInterval = null;
-  }
-
+export default class Channel {
   /**
    * Register ping function
    * @param channel Channel to be used by ping fuction
@@ -266,76 +201,19 @@ export default class App {
     }
   }
 
-  main(args = process.argv) {
-    program
-      .version(pkg.version)
-      .option('-c, --channel <CHANNEL>', `Channel to connect to, default: ${DEFAULT_CHANNEL}`)
-      .option('--heartbeat-interval <MILLISECONDS>', `Heartbeat interval in milliseconds, default: ${DEFAULT_HEARTBEAT_INTERVAL}`)
-      .option('-i, --interactive', 'Run interactive mode')
-      .option('-u, --url <URL>', `URL to connect to, default: ${DEFAULT_URL}`)
-      .option('-t, --token <TOKEN>', `Token used for authorization, default: ${DEFAULT_TOKEN}`)
-      .option('-a, --url-auth <URL>', `URL used for authentication, default: ${DEFAULT_URL_AUTH}`)
-      .option('--username <EMAIL>', 'Username')
-      .option('--password <PASSWORD>', 'Password')
-      .parse(args);
+  initialize(url, token, channelName, manager) {
+    const crawlers = manager.crawlers;
 
-    let crawlers = null;
-    let promise = loadCrawlers().then((res) => {
-      crawlers = res;
-      return Promise.resolve(true);
-    });
-
-    const urlAuth = program.urlAuth || DEFAULT_URL_AUTH;
-    const username = program.username;
-    const password = program.password;
-    if (username && password) {
-      const payload = {
-        email: username,
-        password
-      };
-
-      promise = new Promise(
-        (resolve, reject) => {
-          request
-            .post(urlAuth)
-            .send(payload)
-            .end(
-              (err, result) => {
-                if (err) {
-                  return reject(err);
-                }
-
-                return resolve(result);
-              }
-            );
-        }
-      );
-
-      promise.then(
-        (result) => {
-          const jwt = result.body.jwt;
-          console.log(`Storing token in ${TOKEN_PATH}`);
-          fs.writeFileSync(TOKEN_PATH, `${jwt}\n`);
-        },
-        (error) => {
-          console.log(error);
-        }
-      );
-    }
-
-    promise.then(() => {
-      // Create socket
-      const url = program.url || DEFAULT_URL;
-      const token = program.token || DEFAULT_TOKEN;
+    return new Promise((resolve) => {
       const socket = createSocket(url, token, this.unregisterPingFunction.bind(this));
 
       // Try to connect
       socket.connect();
 
-      // Create channel
-      const channelName = program.channel || DEFAULT_CHANNEL;
+      // const channel =
+      createChannel(socket, channelName, this.registerPingFunction.bind(this), this.unregisterPingFunction.bind(this), crawlers);
 
-      /* const channel = */ createChannel(socket, channelName, this.registerPingFunction.bind(this), this.unregisterPingFunction.bind(this), crawlers);
+      resolve(this);
     });
   }
 }

@@ -1,17 +1,18 @@
 import {expect} from 'chai';
 
-import App from '../lib';
+import App from '../lib/App';
+import Manager from '../lib/Manager';
 
-
-describe('microcrawler-worker', () => {
-  it('should work', () => {
-    expect(1 + 1).to.equal(2);
+describe('Application', () => {
+  it('Is defined', () => {
+    const app = new App();
+    expect(app).to.not.equal(null);
   });
 });
 
-describe('Command Line Interface', () => {
-  it('accepts', () => {
-    const app = new App();
-    app.main();
+describe('Manager', () => {
+  it('Is defined', () => {
+    const app = new Manager();
+    expect(app).to.not.equal(null);
   });
 });
