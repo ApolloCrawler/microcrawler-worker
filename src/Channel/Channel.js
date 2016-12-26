@@ -59,7 +59,7 @@ export function createChannel(socket, channelName, registerPingFunction, unregis
     const crawlerName = parts[0];
     const processorName = parts[1] || 'index';
 
-    const crawler = crawlers[crawlerName];
+    const crawler = crawlers[crawlerName.replace('microcrawler-crawler-', '')];
     if (!crawler) {
       const msg = `Unable to find crawler named: '${crawlerName}'`;
       console.log(msg);
