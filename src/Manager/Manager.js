@@ -4,7 +4,15 @@ import path from 'path';
 import R from 'ramda';
 import Table from 'cli-table';
 
+import Crawler from '../Crawler';
+
 const NODE_MODULES = path.join(__dirname, '..', '..', 'node_modules');
+
+const PROTOCOL_DIR = path.join(__dirname, '..', 'Protocol');
+
+export function loadProtocols() {
+  console.log(PROTOCOL_DIR);
+}
 
 /**
  * List crawlers package.json
@@ -48,16 +56,28 @@ export function parsePackageJsons(paths) {
       };
     }, filtered);
 
-    const map = {};
-    R.forEach((item) => {
-      map[item.name] = item;
-      map[item.name].processors = {};
+    const crawlers = {};
+    R.forEach((pkg) => {
+      const name = pkg.name.replace('microcrawler-crawler-', '');
+      const crawler = Crawler.load(pkg);
+
+      if (crawler) {
+        crawlers[name] = crawler;
+      } else {
+        console.log(`Unable to load Crawler, name: ${name}`);
+      }
+
+      crawlers[name] = pkg;
+      crawlers[name].processors = {};
+
+      // /*
       R.forEach((processor) => {
-        map[item.name].processors[processor] = require(path.join(item.dir, item.pkg.crawler.processors[processor]));
-      }, Object.keys(item.pkg.crawler.processors));
+        crawlers[name].processors[processor] = require(path.join(pkg.dir, pkg.pkg.crawler.processors[processor]));
+      }, Object.keys(pkg.pkg.crawler.processors));
+      // */
     }, packages);
 
-    return resolve(map);
+    return resolve(crawlers);
   });
 }
 

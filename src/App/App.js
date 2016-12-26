@@ -117,6 +117,7 @@ export default class App {
     // Update token if the --username and --password was specified
     this.manager.loadCrawlers().then(
       () => {
+        // Get Token - Fetch, Read From File or Return Default
         return updateToken(
           program.username,
           program.password,
@@ -131,6 +132,7 @@ export default class App {
       (newToken) => {
         const token = newToken || program.token || readToken();
         console.log(`Using token: ${token}`);
+        // Intitialize Channel for Communication with WebApp (Backend)
         return this.channel.initialize(
           program.url || DEFAULT_URL,
           token,

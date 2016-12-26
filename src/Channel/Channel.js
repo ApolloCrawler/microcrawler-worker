@@ -1,54 +1,17 @@
 import cheerio from 'cheerio';
-import os from 'os';
-import request from 'superagent';
 import {Socket} from 'phoenix-socket';
-import uuid from 'node-uuid';
+// import urlparser from 'url';
 
-import pkg from '../../package.json';
+import Fetcher from '../Fetcher';
 
-/**
- * Construct message which is send during joining the channel
- * @returns {{uuid: *, name, version, os: {cpus: *, endian: *, hostname: *, platform: *, uptime: *, mem: {total: *, free: *}, load: *}}}
- */
-export function constructJoinMessage() {
-  return {
-    uuid: uuid.v4(),
-    name: pkg.name,
-    version: pkg.version,
-    os: {
-      cpus: os.cpus(),
-      endian: os.endianness(),
-      hostname: os.hostname(),
-      platform: os.platform(),
-      uptime: os.uptime(),
-      mem: {
-        total: os.totalmem(),
-        free: os.freemem(),
-      },
-      load: os.loadavg(),
-    }
-  };
-}
+import OkEvent from './Event/Ok';
+import ErrorEvent from './Event/Error';
+import TimeoutEvent from './Event/Timeout';
 
-/**
- * Construct ping message
- * @param id ID of the message to be send
- * @returns {{id: *, msg: string, os: {mem: {total: *, free: *}, load: *, uptime: *}}}
- */
-export function constructPingMessage(id) {
-  return {
-    id,
-    msg: 'I am still alive!',
-    os: {
-      mem: {
-        total: os.totalmem(),
-        free: os.freemem(),
-      },
-      load: os.loadavg(),
-      uptime: os.uptime()
-    }
-  };
-}
+import JoinMessage from './Message/Join';
+import PingMessage from './Message/Ping';
+
+import PongHandler from './Handler/Pong';
 
 /**
  * Create new channel
@@ -58,22 +21,19 @@ export function constructPingMessage(id) {
  * @param unregisterPingFunction Function used for unregistering ping function - callback
  */
 export function createChannel(socket, channelName, registerPingFunction, unregisterPingFunction, crawlers) {
-  const channel = socket.channel(channelName, constructJoinMessage());
+  const channel = socket.channel(channelName, JoinMessage.construct());
 
-  /* const _channel = */
-  channel.join()
-    .receive('ok', (payload) => {
-      console.log('Received ok');
-      console.log(JSON.stringify(payload, null, 4));
-      registerPingFunction(channel);
-    })
-    .receive('error', ({reason}) => {
-      console.log('Failed join', reason);
-      unregisterPingFunction();
-    })
-    .receive('timeout', () => {
-      console.log('Networking issue. Still waiting...');
-    });
+  let event = channel.join();
+
+  event = OkEvent.register(event, () => {
+    registerPingFunction(channel);
+  });
+
+  event = ErrorEvent.register(event, unregisterPingFunction, () => {
+    unregisterPingFunction();
+  });
+
+  /* event = */ TimeoutEvent.register(event);
 
   channel.on('crawl', (data) => {
     console.log('Received event - crawl');
@@ -82,51 +42,62 @@ export function createChannel(socket, channelName, registerPingFunction, unregis
     try {
       payload = JSON.parse(data.payload);
     } catch (e) {
-      console.log(`Parsing JSON failed, reason: ${e}`, e, data.payload);
+      const msg = `Parsing JSON failed, reason: ${e}, json: ${data.payload}`;
+      console.log(msg);
+
+      return channel.push('done', {
+        error: msg
+      });
     }
 
     console.log(JSON.stringify(payload, null, 4));
 
-    request
-      .get(payload.url)
-      .end(
-        (err, result) => {
-          if (err) {
-            return channel.push('done', {
-              error: err
-            });
-          }
+    // const url = urlparser.parse(payload.url);
+    // console.log(url);
 
-          const text = result.text;
-          const doc = cheerio.load(text);
+    const parts = (payload.crawler || payload.processor).split('/');
+    const crawlerName = parts[0];
+    const processorName = parts[1] || 'index';
 
-          const crawler = crawlers[payload.crawler] || {};
-          console.log(crawler);
-          if (crawler === {}) {
-            console.log(`Unable to find crawler named: '${payload.crawler}'`);
-          }
+    const crawler = crawlers[crawlerName];
+    if (!crawler) {
+      const msg = `Unable to find crawler named: '${crawlerName}'`;
+      console.log(msg);
 
-          const processor = crawler.processors && crawler.processors[payload.processor];
-          if (processor) {
-            const response = processor(doc, payload);
-            console.log(JSON.stringify(response, null, 4));
+      return channel.push('done', {
+        error: msg
+      });
+    }
 
-            return channel.push('done', response);
-          }
+    const processor = crawler.processors && crawler.processors[processorName];
+    if (!processor) {
+      const msg = `Unable to find processor named: '${processorName}'`;
+      console.log(msg);
 
-          console.log(`Unable to find processor named: '${payload.processor}'`);
+      return channel.push('done', {
+        error: msg
+      });
+    }
 
-          return channel.push('done', {
-            error: 'crawler/processor not found'
-          });
-        }
-      );
+    return Fetcher.get(payload.url).then(
+      (result) => {
+        const text = result.text;
+        const doc = cheerio.load(text);
+
+        const response = processor(doc, payload);
+        console.log(JSON.stringify(response, null, 4));
+
+        return channel.push('done', response);
+      },
+      (err) => {
+        return channel.push('done', {
+          error: err
+        });
+      }
+    );
   });
 
-  channel.on('pong', (payload) => {
-    console.log('Received event - pong');
-    console.log(JSON.stringify(payload, null, 4));
-  });
+  PongHandler.register(channel);
 
   channel.push('msg', {msg: 'Hello World!'});
 }
@@ -138,7 +109,7 @@ export function createChannel(socket, channelName, registerPingFunction, unregis
  */
 export function pingFunction(channel, id) {
   console.log('Executing ping function.');
-  channel.push('ping', constructPingMessage(id));
+  channel.push('ping', PingMessage.construct(id));
 }
 
 /**
@@ -151,15 +122,17 @@ export function pingFunction(channel, id) {
 export function createSocket(url, token, unregisterPingFunction) {
   console.log(`Connecting to "${url}"`);
   const socket = new Socket(url, {
-    params: {guardian_token: token},
+    params: {
+      guardian_token: token
+    },
     transport: global.window.WebSocket
   });
 
   // Error handler
   socket.onError((err) => {
     console.log('There was an error with the connection!');
-    unregisterPingFunction();
     console.log(err);
+    unregisterPingFunction();
   });
 
   // Close handler
@@ -171,7 +144,14 @@ export function createSocket(url, token, unregisterPingFunction) {
   return socket;
 }
 
+/**
+ * Channel (Websocket) used for communication with Webapp (Backend)
+ */
 export default class Channel {
+  constructor() {
+    console.log('Loading Supported Protocols');
+  }
+
   /**
    * Register ping function
    * @param channel Channel to be used by ping fuction
@@ -201,6 +181,14 @@ export default class Channel {
     }
   }
 
+  /**
+   * Initialize Channel
+   * @param url Webapp Socket URL
+   * @param token Auth Token
+   * @param channelName Name of Channel used for Communication
+   * @param manager Crawler Manager
+   * @returns {Promise}
+   */
   initialize(url, token, channelName, manager) {
     const crawlers = manager.crawlers;
 
