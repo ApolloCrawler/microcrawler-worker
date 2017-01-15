@@ -56,10 +56,10 @@ export function createChannel(socket, channelName, registerPingFunction, unregis
     // console.log(url);
 
     const parts = (payload.crawler || payload.processor).split('/');
-    const crawlerName = parts[0];
+    const crawlerName = parts[0].replace('microcrawler-crawler-', '');
     const processorName = parts[1] || 'index';
 
-    const crawler = crawlers[crawlerName.replace('microcrawler-crawler-', '')];
+    const crawler = crawlers[crawlerName];
     if (!crawler) {
       const msg = `Unable to find crawler named: '${crawlerName}'`;
       console.log(msg);
@@ -84,7 +84,11 @@ export function createChannel(socket, channelName, registerPingFunction, unregis
         const text = result.text;
         const doc = cheerio.load(text);
 
-        const response = processor(doc, payload);
+        const response = {
+          request: payload,
+          results: processor(doc, payload)
+        };
+
         console.log(JSON.stringify(response, null, 4));
 
         return channel.push('done', response);
