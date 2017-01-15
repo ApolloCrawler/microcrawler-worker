@@ -32,6 +32,7 @@ export const DEFAULT_URL_AUTH = 'http://localhost:4000/api/v1/auth/signin';
 export const DEFAULT_CHANNEL = 'worker:lobby';
 export const DEFAULT_TOKEN = TOKEN;
 export const DEFAULT_HEARTBEAT_INTERVAL = 10000;
+export const DEFAULT_WORKERS_COUNT = 1;
 
 // These hacks are required to pretend we are the browser
 global.XMLHttpRequest = XMLHttpRequest;
@@ -105,6 +106,7 @@ export default class App {
     program
       .version(pkg.version)
       .option('-c, --channel <CHANNEL>', `Channel to connect to, default: ${DEFAULT_CHANNEL}`)
+      .option('--count <COUNT>', `Count of workers, default: ${DEFAULT_WORKERS_COUNT}`)
       .option('--heartbeat-interval <MILLISECONDS>', `Heartbeat interval in milliseconds, default: ${DEFAULT_HEARTBEAT_INTERVAL}`)
       .option('-i, --interactive', 'Run interactive mode')
       .option('-u, --url <URL>', `URL to connect to, default: ${DEFAULT_URL}`)
@@ -133,12 +135,18 @@ export default class App {
         const token = newToken || program.token || readToken();
         console.log(`Using token: ${token}`);
         // Intitialize Channel for Communication with WebApp (Backend)
-        return this.channel.initialize(
-          program.url || DEFAULT_URL,
-          token,
-          program.channel || DEFAULT_CHANNEL,
-          this.manager
-        );
+
+        const res = [];
+        for (let i = 0; i < parseInt(program.count, 10); i += 1) {
+          res.push(this.channel.initialize(
+            program.url || DEFAULT_URL,
+            token,
+            program.channel || DEFAULT_CHANNEL,
+            this.manager
+          ));
+        }
+
+        return res;
       },
       (err) => {
         console.log('Unable to updateToken', err);
