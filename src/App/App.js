@@ -137,7 +137,8 @@ export default class App {
         // Intitialize Channel for Communication with WebApp (Backend)
 
         const res = [];
-        for (let i = 0; i < parseInt(program.count, 10); i += 1) {
+        const count = parseInt(program.count, 10) || DEFAULT_WORKERS_COUNT;
+        for (let i = 0; i < count; i += 1) {
           res.push(this.channel.initialize(
             program.url || DEFAULT_URL,
             token,

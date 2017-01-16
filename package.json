@@ -36,6 +36,7 @@
     "microcrawler-crawler-all": "0.0.11",
     "mocha": "^3.2.0",
     "node-uuid": "^1.4.7",
+    "phantom": "^4.0.0",
     "phoenix-socket": "git://github.com/bossek/phoenix_socket.git#v1.2.patched",
     "ramda": "^0.23.0",
     "superagent": "^3.3.2",

@@ -35,6 +35,8 @@ export function createChannel(socket, channelName, registerPingFunction, unregis
 
   /* event = */ TimeoutEvent.register(event);
 
+  const fetcher = new Fetcher();
+
   channel.on('crawl', (data) => {
     console.log('Received event - crawl');
 
@@ -79,26 +81,29 @@ export function createChannel(socket, channelName, registerPingFunction, unregis
       });
     }
 
-    return Fetcher.get(payload.url).then(
-      (result) => {
-        const text = result.text;
-        const doc = cheerio.load(text);
+    return fetcher.initialize()
+      .then(() => {
+        fetcher.get(payload.url).then(
+          (result) => {
+            const text = result.text;
+            const doc = cheerio.load(text);
 
-        const response = {
-          request: payload,
-          results: processor(doc, payload)
-        };
+            const response = {
+              request: payload,
+              results: processor(doc, payload)
+            };
 
-        console.log(JSON.stringify(response, null, 4));
+            console.log(JSON.stringify(response, null, 4));
 
-        return channel.push('done', response);
-      },
-      (err) => {
-        return channel.push('done', {
-          error: err
-        });
-      }
-    );
+            return channel.push('done', response);
+          },
+          (err) => {
+            return channel.push('done', {
+              error: err
+            });
+          }
+        );
+      });
   });
 
   PongHandler.register(channel);

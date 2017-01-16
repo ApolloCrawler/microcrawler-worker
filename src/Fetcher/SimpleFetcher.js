@@ -1,7 +1,12 @@
+/* eslint class-methods-use-this: 0 */
 import request from 'superagent';
 
-export default class Fetcher {
-  static get(url) {
+export default class SimpleFetcher {
+  initialize() {
+    return Promise.resolve(true);
+  }
+
+  get(url) {
     return new Promise((resolve, reject) => {
       request
         .get(url)
