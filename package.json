@@ -1,6 +1,6 @@
 {
   "name": "microcrawler-worker",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Microcrawler Worker",
   "main": "index.js",
   "scripts": {
@@ -33,7 +33,7 @@
     "crypto": "0.0.3",
     "glob": "^7.1.1",
     "homedir": "^0.6.0",
-    "microcrawler-crawler-all": "0.0.11",
+    "microcrawler-crawler-all": "0.0.12",
     "mocha": "^3.2.0",
     "node-uuid": "^1.4.7",
     "phantom": "^4.0.0",
