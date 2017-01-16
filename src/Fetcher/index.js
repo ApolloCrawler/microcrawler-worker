@@ -1,3 +1,3 @@
-import Fetcher from './Fetcher';
+import SimpleFetcher from './PhantomFetcher';
 
-export default Fetcher;
+export default SimpleFetcher;
