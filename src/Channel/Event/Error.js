@@ -1,9 +1,9 @@
-import winston from 'winston';
+import logger from '../../Logger';
 
 export default class ErrorEvent {
   static register(event, func) {
     event.receive('error', ({reason}) => {
-      winston.error('Failed join', reason);
+      logger.error('Failed join', reason);
 
       if (func) {
         func();

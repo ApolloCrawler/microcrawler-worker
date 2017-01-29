@@ -4,7 +4,6 @@ import fs from 'fs';
 import path from 'path';
 import program from 'commander';
 import request from 'superagent';
-import winston from 'winston';
 import WebSocket from 'websocket';
 import XMLHttpRequest from 'xhr2';
 
@@ -13,6 +12,8 @@ import pkg from '../../package.json';
 import Channel from '../Channel';
 import Fetcher from '../Fetcher';
 import Manager from '../Manager';
+
+import logger from '../Logger';
 
 import crawl from '../crawl';
 
@@ -71,7 +72,7 @@ export function updateToken(username, password, urlAuth, tokenFilePath) {
           }
 
           const jwt = result.body.user.workerJWT;
-          winston.info(`Storing token in ${tokenFilePath}`);
+          logger.info(`Storing token in ${tokenFilePath}`);
           fs.writeFileSync(tokenFilePath, `${jwt}\n`);
 
           return resolve(jwt);
@@ -115,7 +116,7 @@ export default class App {
       .option('--crawl', 'Crawl single page')
       .option('--heartbeat-interval <MILLISECONDS>', `Heartbeat interval in milliseconds, default: ${DEFAULT_HEARTBEAT_INTERVAL}`)
       .option('-i, --interactive', 'Run interactive mode')
-      .option('--log-level <LEVEL>', `Log level used, default: ${DEFAULT_LOG_LEVEL}`)
+      // .option('--log-level <LEVEL>', `Log level used, default: ${DEFAULT_LOG_LEVEL}`)
       .option('-u, --url <URL>', `URL to connect to, default: ${DEFAULT_URL}`)
       .option('-t, --token <TOKEN>', `Token used for authorization, default: ${DEFAULT_TOKEN}`)
       .option('-a, --url-auth <URL>', `URL used for authentication, default: ${DEFAULT_URL_AUTH}`)
@@ -123,8 +124,7 @@ export default class App {
       .option('--password <PASSWORD>', 'Password')
       .parse(args);
 
-    winston.level = program.logLevel || DEFAULT_LOG_LEVEL;
-    winston.add(winston.transports.File, { filename: 'worker.log' });
+    // logger.level = program.logLevel || DEFAULT_LOG_LEVEL;
 
     this._channel = new Channel();
     this._manager = new Manager();
@@ -141,11 +141,11 @@ export default class App {
           return crawl(fetcher, this.manager.crawlers, payload)
             .then(
               (result) => {
-                winston.info(JSON.stringify(result, null, 4));
+                logger.info(JSON.stringify(result, null, 4));
                 process.exit(0);
               },
               (error) => {
-                winston.error(JSON.stringify(error, null, 4));
+                logger.error(JSON.stringify(error, null, 4));
                 process.exit(0);
               }
             );
@@ -160,12 +160,12 @@ export default class App {
         );
       },
       (err) => {
-        winston.error('Unable to load crawlers', err);
+        logger.error('Unable to load crawlers', err);
       }
     ).then(
       (newToken) => {
         const token = newToken || program.token || readToken();
-        winston.info(`Using token: ${token}`);
+        logger.info(`Using token: ${token}`);
         // Intitialize Channel for Communication with WebApp (Backend)
 
         const res = [];
@@ -182,7 +182,7 @@ export default class App {
         return res;
       },
       (err) => {
-        winston.error('Unable to updateToken', err);
+        logger.error('Unable to updateToken', err);
       }
     );
   }

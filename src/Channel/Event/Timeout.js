@@ -1,9 +1,9 @@
-import winston from 'winston';
+import logger from '../../Logger';
 
 export default class TimeoutEvent {
   static register(event, func) {
     event.receive('timeout', () => {
-      winston.info('Networking issue. Still waiting...');
+      logger.info('Networking issue. Still waiting...');
 
       if (func) {
         func();

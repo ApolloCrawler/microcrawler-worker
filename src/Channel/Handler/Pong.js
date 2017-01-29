@@ -1,10 +1,9 @@
-import winston from 'winston';
+import logger from '../../Logger';
 
 export default class PongHandler {
   static register(channel, func) {
     channel.on('pong', (payload) => {
-      winston.info('Received event - pong');
-      winston.info(JSON.stringify(payload, null, 4));
+      logger.debug('Received event - pong', JSON.stringify(payload, null, 4));
 
       if (func) {
         func();

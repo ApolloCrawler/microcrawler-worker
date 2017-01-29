@@ -1,10 +1,9 @@
-import winston from 'winston';
+import logger from '../../Logger';
 
 export default class OkEvent {
   static register(event, func) {
     event.receive('ok', (payload) => {
-      winston.info('Received ok');
-      winston.info(JSON.stringify(payload, null, 4));
+      logger.debug('Received ok', JSON.stringify(payload, null, 4));
 
       if (func) {
         func();
