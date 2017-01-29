@@ -1,4 +1,5 @@
 import phantom from 'phantom';
+import winston from 'winston';
 
 export default class PhantomFetcher {
   initialize() {
@@ -6,7 +7,7 @@ export default class PhantomFetcher {
       return Promise.resolve(this.page);
     }
 
-    console.log('Creating new PhantomJS instance');
+    winston.info('Creating new PhantomJS instance');
     return phantom.create()
       .then(
         (instance) => {
