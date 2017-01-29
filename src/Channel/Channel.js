@@ -1,6 +1,4 @@
-import cheerio from 'cheerio';
 import {Socket} from 'phoenix-socket';
-// import urlparser from 'url';
 
 import Fetcher from '../Fetcher';
 
@@ -12,6 +10,8 @@ import JoinMessage from './Message/Join';
 import PingMessage from './Message/Ping';
 
 import PongHandler from './Handler/Pong';
+
+import crawl from '../crawl';
 
 /**
  * Create new channel
@@ -54,56 +54,15 @@ export function createChannel(socket, channelName, registerPingFunction, unregis
 
     console.log(JSON.stringify(payload, null, 4));
 
-    // const url = urlparser.parse(payload.url);
-    // console.log(url);
-
-    const parts = (payload.crawler || payload.processor).split('/');
-    const crawlerName = parts[0].replace('microcrawler-crawler-', '');
-    const processorName = parts[1] || 'index';
-
-    const crawler = crawlers[crawlerName];
-    if (!crawler) {
-      const msg = `Unable to find crawler named: '${crawlerName}'`;
-      console.log(msg);
-
-      return channel.push('done', {
-        error: msg
-      });
-    }
-
-    const processor = crawler.processors && crawler.processors[processorName];
-    if (!processor) {
-      const msg = `Unable to find processor named: '${processorName}'`;
-      console.log(msg);
-
-      return channel.push('done', {
-        error: msg
-      });
-    }
-
-    return fetcher.initialize()
-      .then(() => {
-        fetcher.get(payload.url).then(
-          (result) => {
-            const text = result.text;
-            const doc = cheerio.load(text);
-
-            const response = {
-              request: payload,
-              results: processor(doc, payload)
-            };
-
-            console.log(JSON.stringify(response, null, 4));
-
-            return channel.push('done', response);
-          },
-          (err) => {
-            return channel.push('done', {
-              error: err
-            });
-          }
-        );
-      });
+    return crawl(fetcher, crawlers, payload)
+      .then(
+        (result) => {
+          return channel.push('done', result);
+        },
+        (error) => {
+          return channel.push('done', error);
+        }
+      );
   });
 
   PongHandler.register(channel);
