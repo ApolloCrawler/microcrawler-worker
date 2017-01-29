@@ -10,7 +10,10 @@ import XMLHttpRequest from 'xhr2';
 import pkg from '../../package.json';
 
 import Channel from '../Channel';
+import Fetcher from '../Fetcher';
 import Manager from '../Manager';
+
+import crawl from '../crawl';
 
 export function configDir() {
   return path.join(os.homedir ? os.homedir() : require('homedir')(), '.microcrawler');
@@ -107,6 +110,7 @@ export default class App {
       .version(pkg.version)
       .option('-c, --channel <CHANNEL>', `Channel to connect to, default: ${DEFAULT_CHANNEL}`)
       .option('--count <COUNT>', `Count of workers, default: ${DEFAULT_WORKERS_COUNT}`)
+      .option('--crawl', 'Crawl single page')
       .option('--heartbeat-interval <MILLISECONDS>', `Heartbeat interval in milliseconds, default: ${DEFAULT_HEARTBEAT_INTERVAL}`)
       .option('-i, --interactive', 'Run interactive mode')
       .option('-u, --url <URL>', `URL to connect to, default: ${DEFAULT_URL}`)
@@ -119,6 +123,25 @@ export default class App {
     // Update token if the --username and --password was specified
     this.manager.loadCrawlers().then(
       () => {
+        if (program.crawl) {
+          const fetcher = new Fetcher();
+          const payload = {
+            crawler: program.args[0],
+            url: program.args[1],
+          };
+          return crawl(fetcher, this.manager.crawlers, payload)
+            .then(
+              (result) => {
+                console.log(JSON.stringify(result, null, 4));
+                process.exit(0);
+              },
+              (error) => {
+                console.log(JSON.stringify(error, null, 4));
+                process.exit(0);
+              }
+            );
+        }
+
         // Get Token - Fetch, Read From File or Return Default
         return updateToken(
           program.username,

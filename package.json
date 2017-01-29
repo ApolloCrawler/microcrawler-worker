@@ -1,11 +1,12 @@
 {
   "name": "microcrawler-worker",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Microcrawler Worker",
   "main": "index.js",
   "scripts": {
     "test": "./node_modules/gulp/bin/gulp.js test",
-    "gulp": "./node_modules/gulp/bin/gulp.js"
+    "gulp": "./node_modules/gulp/bin/gulp.js",
+    "watch": "./node_modules/gulp/bin/gulp.js watch"
   },
   "repository": {
     "type": "git",
@@ -33,8 +34,9 @@
     "crypto": "0.0.3",
     "glob": "^7.1.1",
     "homedir": "^0.6.0",
-    "microcrawler-crawler-all": "0.0.12",
+    "microcrawler-crawler-all": "0.0.13",
     "mocha": "^3.2.0",
+    "moment": "^2.17.1",
     "node-uuid": "^1.4.7",
     "phantom": "^4.0.0",
     "phoenix-socket": "git://github.com/bossek/phoenix_socket.git#v1.2.patched",
