@@ -3,16 +3,16 @@ import glob from 'glob';
 import path from 'path';
 import R from 'ramda';
 import Table from 'cli-table';
-import winston from 'winston';
 
 import Crawler from '../Crawler';
+import logger from '../Logger';
 
 const NODE_MODULES = path.join(__dirname, '..', '..', 'node_modules');
 
 const PROTOCOL_DIR = path.join(__dirname, '..', 'Protocol');
 
 export function loadProtocols() {
-  winston.info(PROTOCOL_DIR);
+  logger.info(PROTOCOL_DIR);
 }
 
 /**
@@ -65,7 +65,7 @@ export function parsePackageJsons(paths) {
       if (crawler) {
         crawlers[name] = crawler;
       } else {
-        winston.error(`Unable to load Crawler, name: ${name}`);
+        logger.error(`Unable to load Crawler, name: ${name}`);
       }
 
       crawlers[name] = pkg;
