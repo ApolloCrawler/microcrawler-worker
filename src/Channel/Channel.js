@@ -54,15 +54,21 @@ export function createChannel(socket, channelName, registerPingFunction, unregis
 
     console.log(JSON.stringify(payload, null, 4));
 
-    return crawl(fetcher, crawlers, payload)
-      .then(
-        (result) => {
-          return channel.push('done', result);
-        },
-        (error) => {
-          return channel.push('done', error);
-        }
-      );
+    try {
+      return crawl(fetcher, crawlers, payload)
+        .then(
+          (result) => {
+            return channel.push('done', result);
+          },
+          (error) => {
+            return channel.push('done', error);
+          }
+        );
+    } catch (error) {
+      return channel.push('done', {
+        error: error.message
+      });
+    }
   });
 
   PongHandler.register(channel);
