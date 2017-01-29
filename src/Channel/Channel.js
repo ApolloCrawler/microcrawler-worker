@@ -1,4 +1,5 @@
 import {Socket} from 'phoenix-socket';
+import winston from 'winston';
 
 import Fetcher from '../Fetcher';
 
@@ -38,21 +39,21 @@ export function createChannel(socket, channelName, registerPingFunction, unregis
   const fetcher = new Fetcher();
 
   channel.on('crawl', (data) => {
-    console.log('Received event - crawl');
+    winston.info('Received event - crawl');
 
     let payload = null;
     try {
       payload = JSON.parse(data.payload);
     } catch (e) {
       const msg = `Parsing JSON failed, reason: ${e}, json: ${data.payload}`;
-      console.log(msg);
+      winston.error(msg);
 
       return channel.push('done', {
         error: msg
       });
     }
 
-    console.log(JSON.stringify(payload, null, 4));
+    winston.info(JSON.stringify(payload, null, 4));
 
     try {
       return crawl(fetcher, crawlers, payload)
@@ -82,7 +83,7 @@ export function createChannel(socket, channelName, registerPingFunction, unregis
  * @param id ID of the message
  */
 export function pingFunction(channel, id) {
-  console.log('Executing ping function.');
+  winston.info('Executing ping function.');
   channel.push('ping', PingMessage.construct(id));
 }
 
@@ -94,7 +95,7 @@ export function pingFunction(channel, id) {
  * @returns {Socket}
  */
 export function createSocket(url, token, unregisterPingFunction) {
-  console.log(`Connecting to "${url}"`);
+  winston.info(`Connecting to "${url}"`);
   const socket = new Socket(url, {
     params: {
       guardian_token: token
@@ -104,14 +105,13 @@ export function createSocket(url, token, unregisterPingFunction) {
 
   // Error handler
   socket.onError((err) => {
-    console.log('There was an error with the connection!');
-    console.log(err);
+    winston.error('There was an error with the connection!', err);
     unregisterPingFunction();
   });
 
   // Close handler
   socket.onClose(() => {
-    console.log('The connection dropped.');
+    winston.info('The connection dropped.');
     unregisterPingFunction();
   });
 
@@ -123,7 +123,7 @@ export function createSocket(url, token, unregisterPingFunction) {
  */
 export default class Channel {
   constructor() {
-    console.log('Loading Supported Protocols');
+    winston.info('Loading Supported Protocols');
   }
 
   /**
@@ -132,7 +132,7 @@ export default class Channel {
    * @param heartbeatInterval Interval between pings
    */
   registerPingFunction(channel, heartbeatInterval = 10000) {
-    console.log('Registering ping function.');
+    winston.info('Registering ping function.');
 
     let id = 0;
     this.pingFunctionInterval = setInterval(
@@ -149,7 +149,7 @@ export default class Channel {
    */
   unregisterPingFunction() {
     if (this.pingFunctionInterval) {
-      console.log('Unregistering ping function.');
+      winston.info('Unregistering ping function.');
       clearInterval(this.pingFunctionInterval);
       this.pingFunctionInterval = null;
     }

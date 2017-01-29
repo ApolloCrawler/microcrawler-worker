@@ -1,4 +1,5 @@
 import cheerio from 'cheerio';
+import winston from 'winston';
 
 export default function crawl(fetcher, crawlers, payload) {
   const parts = (payload.crawler || payload.processor).split('/');
@@ -9,7 +10,7 @@ export default function crawl(fetcher, crawlers, payload) {
     const crawler = crawlers[crawlerName];
     if (!crawler) {
       const msg = `Unable to find crawler named: '${crawlerName}'`;
-      console.log(msg);
+      winston.error(msg);
 
       return reject({
         error: msg
@@ -19,7 +20,7 @@ export default function crawl(fetcher, crawlers, payload) {
     const processor = crawler.processors && crawler.processors[processorName];
     if (!processor) {
       const msg = `Unable to find processor named: '${processorName}'`;
-      console.log(msg);
+      winston.error(msg);
 
       return reject({
         error: msg
@@ -38,7 +39,7 @@ export default function crawl(fetcher, crawlers, payload) {
               results: processor(doc, payload)
             };
 
-            console.log(JSON.stringify(response, null, 4));
+            winston.info(JSON.stringify(response, null, 4));
 
             return resolve(response);
           },
