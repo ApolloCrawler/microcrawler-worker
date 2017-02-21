@@ -1,6 +1,8 @@
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 
+import WebSocketLogger from './WebSocketLogger';
+
 const logger = new (winston.Logger)({
   transports: [
     new DailyRotateFile({
@@ -15,6 +17,12 @@ const logger = new (winston.Logger)({
       handleExceptions: true,
       json: false,
       colorize: true
+    }),
+
+    new WebSocketLogger({
+      level: 'debug',
+      handleExceptions: true,
+      json: true,
     })
   ],
 

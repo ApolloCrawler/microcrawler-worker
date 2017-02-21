@@ -38,8 +38,13 @@ export default class PhantomFetcher {
           (content) => {
             // console.log(content);
 
-            resolve({
-              text: content
+            this.page.evaluate(() => {
+              return document.location;
+            }).then((location) => {
+              resolve({
+                text: content,
+                location
+              });
             });
           }
         );

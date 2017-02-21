@@ -32,7 +32,7 @@ export function readToken(tokenPath = TOKEN_PATH) {
 
 export const TOKEN = readToken(TOKEN_PATH);
 
-export const DEFAULT_URL = 'ws://localhost:4000/worker';
+export const DEFAULT_URL = 'ws://localhost:4000';
 export const DEFAULT_URL_AUTH = 'http://localhost:4000/api/v1/auth/signin';
 export const DEFAULT_CHANNEL = 'worker:lobby';
 export const DEFAULT_LOG_LEVEL = 'warn';
@@ -117,7 +117,7 @@ export default class App {
       .option('--heartbeat-interval <MILLISECONDS>', `Heartbeat interval in milliseconds, default: ${DEFAULT_HEARTBEAT_INTERVAL}`)
       .option('-i, --interactive', 'Run interactive mode')
       // .option('--log-level <LEVEL>', `Log level used, default: ${DEFAULT_LOG_LEVEL}`)
-      .option('-u, --url <URL>', `URL to connect to, default: ${DEFAULT_URL}`)
+      .option('-u, --url <URL>', `URL to connect to, default: ${DEFAULT_URL}/worker`)
       .option('-t, --token <TOKEN>', `Token used for authorization, default: ${DEFAULT_TOKEN}`)
       .option('-a, --url-auth <URL>', `URL used for authentication, default: ${DEFAULT_URL_AUTH}`)
       .option('--username <EMAIL>', 'Username')
@@ -172,7 +172,7 @@ export default class App {
         const count = parseInt(program.count, 10) || DEFAULT_WORKERS_COUNT;
         for (let i = 0; i < count; i += 1) {
           res.push(this.channel.initialize(
-            program.url || DEFAULT_URL,
+            program.url || `${DEFAULT_URL}/worker`,
             token,
             program.channel || DEFAULT_CHANNEL,
             this.manager

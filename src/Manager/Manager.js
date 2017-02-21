@@ -5,15 +5,8 @@ import R from 'ramda';
 import Table from 'cli-table';
 
 import Crawler from '../Crawler';
-import logger from '../Logger';
 
 const NODE_MODULES = path.join(__dirname, '..', '..', 'node_modules');
-
-const PROTOCOL_DIR = path.join(__dirname, '..', 'Protocol');
-
-export function loadProtocols() {
-  logger.info(PROTOCOL_DIR);
-}
 
 /**
  * List crawlers package.json
@@ -37,7 +30,7 @@ export function listPackageJsons(base = NODE_MODULES) {
  * @param paths Array of paths to package.json
  * @returns {Promise}
  */
-export function parsePackageJsons(paths) {
+export function parsePackageJsons(paths, logger) {
   return new Promise((resolve, reject) => {
     if (!paths) {
       return reject('No paths specified!');
@@ -86,10 +79,10 @@ export function parsePackageJsons(paths) {
  * Load Crawlers installed in folder
  * @param base Folder with installed crawlers - usually node_modules folder
  */
-export function loadCrawlers(base = NODE_MODULES) {
+export function loadCrawlers(base = NODE_MODULES, logger) {
   return listPackageJsons(base).then(
     (paths) => {
-      return parsePackageJsons(paths);
+      return parsePackageJsons(paths, logger);
     }
   );
 }
@@ -120,12 +113,17 @@ export function printCrawlersTable(crawlers) {
  * Crawler Manager
  */
 export default class Manager {
-  constructor() {
+  constructor(logger) {
     this._crawlers = {};
+    this._logger = logger;
   }
 
   get crawlers() {
     return this._crawlers;
+  }
+
+  get logger() {
+    return this._logger;
   }
 
   /**
@@ -134,7 +132,7 @@ export default class Manager {
    * @returns {Promise}
    */
   loadCrawlers(base = NODE_MODULES) {
-    return loadCrawlers(base).then(
+    return loadCrawlers(base, this.logger).then(
       (crawlers) => {
         this._crawlers = crawlers;
         return crawlers;
