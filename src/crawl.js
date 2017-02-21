@@ -40,7 +40,7 @@ export default function crawl(fetcher, crawlers, payload) {
                 doc,
                 payload,
                 {
-                  location: result.location
+                  location: JSON.parse(JSON.stringify(result.location))
                 }
               )
             };
