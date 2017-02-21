@@ -36,6 +36,7 @@
     "glob": "^7.1.1",
     "homedir": "^0.6.0",
     "microcrawler-crawler-all": "0.0.14",
+    "microcrawler-crawler-heureka.cz": "file:///Users/tomaskorcak/dev/microcrawler/microcrawler-crawler-heureka.cz",
     "mocha": "^3.2.0",
     "moment": "^2.17.1",
     "node-uuid": "^1.4.7",

@@ -36,7 +36,13 @@ export default function crawl(fetcher, crawlers, payload) {
 
             const response = {
               request: payload,
-              results: processor(doc, payload)
+              results: processor(
+                doc,
+                payload,
+                {
+                  location: result.location
+                }
+              )
             };
 
             logger.info(JSON.stringify(response, null, 4));
