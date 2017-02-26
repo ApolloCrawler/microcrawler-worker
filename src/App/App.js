@@ -10,7 +10,6 @@ import XMLHttpRequest from 'xhr2';
 import pkg from '../../package.json';
 
 import Channel from '../Channel';
-import Fetcher from '../Fetcher';
 import Manager from '../Manager';
 
 import logger from '../Logger';
@@ -133,12 +132,12 @@ export default class App {
     this.manager.loadCrawlers().then(
       () => {
         if (program.crawl) {
-          const fetcher = new Fetcher();
           const payload = {
             crawler: program.args[0],
             url: program.args[1],
           };
-          return crawl(fetcher, this.manager.crawlers, payload)
+
+          return crawl(this.manager.crawlers, payload)
             .then(
               (result) => {
                 logger.info(JSON.stringify(result, null, 4));

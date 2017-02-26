@@ -1,6 +1,6 @@
 {
   "name": "microcrawler-worker",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Microcrawler Worker",
   "main": "index.js",
   "scripts": {

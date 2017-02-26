@@ -7,7 +7,7 @@ const logger = new (winston.Logger)({
   transports: [
     new DailyRotateFile({
       filename: './logs/worker',
-      datePattern: '-yyyy-MM-dd.log',
+      datePattern: '-yyyy-MM-dd-HH-mm.log',
       json: false,
       level: process.env.ENV === 'development' ? 'debug' : 'info'
     }),
@@ -29,7 +29,7 @@ const logger = new (winston.Logger)({
   exceptionHandlers: [
     new DailyRotateFile({
       filename: './logs/worker-exceptions',
-      datePattern: '-yyyy-MM-dd.log',
+      datePattern: '-yyyy-MM-dd-HH-mm.log',
       json: false,
       handleExceptions: true,
       level: process.env.ENV === 'development' ? 'debug' : 'info'
