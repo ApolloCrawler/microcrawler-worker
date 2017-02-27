@@ -1,7 +1,14 @@
 import cheerio from 'cheerio';
 import logger from './Logger';
 
-export default function crawl(fetcher, crawlers, payload) {
+import {Simple, Phantom} from './Fetcher';
+
+const fetchers = {
+  simple: new Simple(),
+  phantom: new Phantom()
+};
+
+export default function crawl(crawlers, payload) {
   const parts = (payload.crawler || payload.processor).split('/');
   const crawlerName = parts[0].replace('microcrawler-crawler-', '');
   const processorName = parts[1] || 'index';
@@ -27,6 +34,8 @@ export default function crawl(fetcher, crawlers, payload) {
       });
     }
 
+    const fetcher = fetchers[processor.fetcher];
+
     return fetcher.initialize()
       .then(() => {
         fetcher.get(payload.url).then(
@@ -36,7 +45,7 @@ export default function crawl(fetcher, crawlers, payload) {
 
             const response = {
               request: payload,
-              results: processor(
+              results: processor.processor(
                 doc,
                 payload,
                 {

@@ -16,7 +16,10 @@ export default class SimpleFetcher {
               return reject(err);
             }
 
-            return resolve(result);
+            return resolve({
+              text: result.text,
+              location: {}
+            });
           }
         );
     });

@@ -66,7 +66,7 @@ export function parsePackageJsons(paths, logger) {
 
       // /*
       R.forEach((processor) => {
-        crawlers[name].processors[processor] = require(path.join(pkg.dir, pkg.pkg.crawler.processors[processor]));
+        crawlers[name].processors[processor] = crawler.processors[processor];
       }, Object.keys(pkg.pkg.crawler.processors));
       // */
     }, packages);
