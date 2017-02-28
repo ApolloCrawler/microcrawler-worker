@@ -1,7 +1,5 @@
 import {Socket} from 'phoenix-socket';
 
-import Fetcher from '../Fetcher';
-
 import OkEvent from './Event/Ok';
 import ErrorEvent from './Event/Error';
 import TimeoutEvent from './Event/Timeout';
@@ -35,8 +33,6 @@ export function createChannel(socket, channelName, registerPingFunction, unregis
 
   /* event = */ TimeoutEvent.register(event);
 
-  const fetcher = new Fetcher();
-
   channel.on('crawl', (data) => {
     let payload = null;
     try {
@@ -53,7 +49,7 @@ export function createChannel(socket, channelName, registerPingFunction, unregis
     logger.info('Received event - crawl', JSON.stringify(payload, null, 4));
 
     try {
-      return crawl(fetcher, crawlers, payload)
+      return crawl(crawlers, payload)
         .then(
           (result) => {
             return channel.push('done', result);

@@ -27,13 +27,21 @@ export default class PhantomFetcher {
   }
 
   get(url) {
-    return new Promise((resolve) => {
-      this.page.open(url)
-        .then((/* status */) => {
-          // console.log(status);
+    return new Promise((resolve, reject) => {
+      this.page.property('onError', (msg) => {
+        reject(msg);
+      });
 
-          return this.page.property('content');
-        })
+      this.page.open(url)
+        .then(
+          (/* status */) => {
+            // console.log(status);
+            return this.page.property('content');
+          },
+          (err) => {
+            reject(err);
+          }
+        )
         .then(
           (content) => {
             // console.log(content);
@@ -45,6 +53,8 @@ export default class PhantomFetcher {
                 text: content,
                 location
               });
+            }).catch((err) => {
+              reject(err);
             });
           }
         );

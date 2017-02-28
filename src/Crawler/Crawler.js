@@ -33,12 +33,12 @@ export default class Crawler {
     crawler._version = packageJson.pkg.version;
 
     const defaultFetcher = packageJson.pkg.crawler.fetcher || 'simple';
-    const defaultProcessor = {
-      fetcher: defaultFetcher
-    };
-
     const processors = {};
     R.forEach((key) => {
+      const defaultProcessor = {
+        fetcher: defaultFetcher
+      };
+
       const tmp = packageJson.pkg.crawler.processors[key];
       let details = null;
       if (typeof tmp === 'string') {

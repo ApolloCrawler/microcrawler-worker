@@ -39,6 +39,7 @@
     "mocha": "^3.2.0",
     "moment": "^2.17.1",
     "node-uuid": "^1.4.7",
+    "node.extend": "^1.1.6",
     "phantom": "^4.0.0",
     "phoenix-socket": "git://github.com/bossek/phoenix_socket.git#v1.2.patched",
     "ramda": "^0.23.0",
