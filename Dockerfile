@@ -30,7 +30,9 @@ RUN git clone git://github.com/couchbase/libcouchbase.git && \
 ADD . .
 
 # If you need npm, don't use a base tag
-RUN npm install
+RUN mkdir -p /root/.microcrawler && \
+  touch /root/.microcrawler/token.jwt && \
+  npm install
 
 # RUN npm install -g babel-cli gulp
 
