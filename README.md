@@ -51,10 +51,15 @@ $ ./bin/microcrawler-worker.js -h
     -h, --help                           output usage information
     -V, --version                        output the version number
     -c, --channel <CHANNEL>              Channel to connect to, default: worker:lobby
+    --count <COUNT>                      Count of workers, default: 1
+    --crawl                              Crawl single page
     --heartbeat-interval <MILLISECONDS>  Heartbeat interval in milliseconds, default: 10000
     -i, --interactive                    Run interactive mode
-    -u, --url <URL>                      URL to connect to, default: ws://localhost:4000/socket
-    -t, --token <TOKEN>                  Token used for authorization, default: null
+    -u, --url <URL>                      URL to connect to, default: ws://localhost:4000/worker
+    -t, --token <TOKEN>                  Token used for authorization, default: eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImtvcmN6aXNAZ21haWwuY29tIiwidG9rZW4iOiIwOGZlMjk1NC0wOThhLTQwYmQtOWNkNy1hN2E2MmJmNDllN2UiLCJ0eXAiOiJ3b3JrZXIifQ.092P1vj2S_-RzL_Rl0UDsoGQYqCMJfZEivrJDEG8_BwOnOlM4wby-9IzmURXFLcI9YB5_bVDdKkE2dsXR64aXQ
+    -a, --url-auth <URL>                 URL used for authentication, default: http://localhost:4000/api/v1/auth/signin
+    --username <EMAIL>                   Username
+    --password <PASSWORD>                Password
 ```
 
 ***Print Version***
