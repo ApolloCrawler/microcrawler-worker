@@ -36,6 +36,8 @@ RUN mkdir -p /root/.microcrawler && \
 
 # RUN npm install -g babel-cli gulp
 
-RUN npm run gulp
+RUN npm run gulp && \
+  mkdir -p /root/.microcrawler && \
+  touch /root/.microcrawler/token.jwt
 
 ENTRYPOINT ["./bin/microcrawler-worker.js"]
